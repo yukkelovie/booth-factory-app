@@ -243,7 +243,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 <script>
 (() => {
   // ---------------------------------------------------------------- 設定・GitHub API
-  // データは非公開リポジトリ（data.json と img/）、返事は同じリポジトリの inbox/ にファイルで置く。PCが朝8:00に読む
+  // データは非公開リポジトリ（data.json と img/）、返事は同じリポジトリの inbox/ にファイルで置く。PCが朝7:00に読む
   const DEFAULT_REPO = "yukkelovie/booth-factory";
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch (e) { return mem[k] || null; } },
@@ -396,10 +396,10 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     el.innerHTML = `
       ${data.exhausted ? '<p class="banner">テーマのアイデアが尽きました。次のテーマを決めてください。</p>' : ""}
       <h2>確認待ち <small>${ready.length} 点</small></h2>
-      ${ready.map(it => card(it, "review")).join("") || '<p class="muted">確認待ちはありません。次は朝8時のラインで届きます。</p>'}
+      ${ready.map(it => card(it, "review")).join("") || '<p class="muted">確認待ちはありません。次は朝7時のラインで届きます。</p>'}
       ${prep.length ? `<h2>工程C確認待ち <small>${prep.length} 点</small></h2><p class="muted hint">消す面とパーツ分けを確認して「OK（確定）」でテクスチャ待ちへ。直す所があれば「直して」</p>${prep.map(prepCard).join("")}` : ""}
       ${ok.length ? `<h2>OK済み <small>${ok.length} 点</small></h2><p class="muted hint">Blenderで整えたら「整えた」を押すと、翌朝の工程Cが仕上げ前処理をします</p>${shelf(ok, "prep")}` : ""}
-      <p class="muted" style="font-size:12px">返事は翌朝8:00のラインが反映します（OK → 40_approved、直して → 30_feedback で作り直し、ボツ → 99_rejected）。</p>`;
+      <p class="muted" style="font-size:12px">返事は翌朝7:00のラインが反映します（OK → 40_approved、直して → 30_feedback で作り直し、ボツ → 99_rejected）。</p>`;
     wireDecide(el);
     hydrateImgs(el);
     const n = ready.length + prep.length;
@@ -411,8 +411,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     const el = document.getElementById("view-line");
     if (!data) { el.innerHTML = noData(); return; }
     const counts = [[data.todo.length, "待ち行列"], ...data.stages.map(s => [byStage(s.id).length, s.label])];
-    const sections = [["30_feedback", "直し待ち", "翌朝8:00の工程Aが作り直します"], ["10_blockout", "工程A済み", "工程Bの検品待ち"],
-      ["50_prep", "工程C待ち", "翌朝8:00の工程Cで、見えない面の削除・パーツ分け・UV・FBX書き出しを仮でやります"],
+    const sections = [["30_feedback", "直し待ち", "翌朝7:00の工程Aが作り直します"], ["10_blockout", "工程A済み", "工程Bの検品待ち"],
+      ["50_prep", "工程C待ち", "翌朝7:00の工程Cで、見えない面の削除・パーツ分け・UV・FBX書き出しを仮でやります"],
       ["60_texturing", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ"], ["99_rejected", "ボツ", ""]];
     el.innerHTML = runPanel() + `
       <ol class="flow" aria-label="ラインの状況">${counts.map(([n, l]) => `<li class="${l === "確認待ち" && n ? "hot" : ""}"><b>${n}</b><span>${l}</span></li>`).join("")}</ol>
@@ -429,7 +429,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     const sent = Object.values(inbox);
     el.innerHTML = `
       <h2>送った返事 <small>${sent.length} 件</small></h2>
-      ${sent.length ? `<ul class="logs">${sent.map(d => `<li><p class="log-h">${fmt(d.at)} ・ 次の8:00に反映</p><ul><li><b>${esc(d.item)}</b>：${esc(LABEL[d.action] || d.action)}${d.note ? "「" + esc(d.note) + "」" : ""}${(d.photos || []).length ? `（写真${d.photos.length}枚）` : ""}</li></ul></li>`).join("")}</ul>` : '<p class="muted">まだ反映されていない返事はありません。</p>'}
+      ${sent.length ? `<ul class="logs">${sent.map(d => `<li><p class="log-h">${fmt(d.at)} ・ 次の7:00に反映</p><ul><li><b>${esc(d.item)}</b>：${esc(LABEL[d.action] || d.action)}${d.note ? "「" + esc(d.note) + "」" : ""}${(d.photos || []).length ? `（写真${d.photos.length}枚）` : ""}</li></ul></li>`).join("")}</ul>` : '<p class="muted">まだ反映されていない返事はありません。</p>'}
       <h2>工場のログ</h2>
       ${data ? `<ul class="logs">${data.logs.map(l => `<li><p class="log-h">${esc(l.title)}</p><ul>${l.lines.map(x => `<li>${md(x)}</li>`).join("")}</ul></li>`).join("")}</ul>` : noData()}`;
   }
@@ -494,7 +494,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     el.innerHTML = `
       <h2>使い方</h2>
       <nav class="help-toc" aria-label="目次">
-        <a href="#h-flow">工場の流れ</a><a href="#h-morning">毎朝8時</a><a href="#h-card">カードの見方</a>
+        <a href="#h-flow">工場の流れ</a><a href="#h-morning">毎朝7時</a><a href="#h-card">カードの見方</a>
         <a href="#h-reply">返事のしかた</a><a href="#h-now">今すぐ動かす</a><a href="#h-stages">ラインの見方</a><a href="#h-faq">よくある質問</a>
       </nav>
 
@@ -503,7 +503,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <p class="muted" style="font-size:13px">黄色いところが、あなたの出番です。それ以外は工場が勝手に進めます。</p>
         <div class="fl">
           ${step("💡", "アイデア（待ち行列）", `テーマ（いまは ${esc(data ? data.theme : "—")}）の作るものリスト。上から順に作る。テーマを変えれば別のジャンルも作れる`)}
-          ${arrow("朝8:00")}
+          ${arrow("朝7:00")}
           ${step("🧱", "工程A：ブロックアウト", "Claude がざっくりした形を作る。1日に新作1つ＋直し最大3つ")}
           ${arrow()}
           ${step("🔍", "工程B：検品", "Claude が浮き・ポリゴン数・UV をチェックして、気になる所を直す")}
@@ -517,7 +517,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           </div>
           ${arrow("OKのもの")}
           ${step("🛠", "OK済み：Blender で整える", "40_approved のフォルダの .blend を自分で整えて「整えた」を押す", true)}
-          ${arrow("朝8:00")}
+          ${arrow("朝7:00")}
           ${step("⚙️", "工程C：仕上げ前処理", "見えない面の削除・パーツ分け・テクスチャセット・UV・FBX書き出しを仮でやる")}
           ${arrow()}
           ${step("👀", "工程C確認待ち", "消す面（赤）とパーツ分けを見て OK（確定）／直して", true)}
@@ -527,15 +527,15 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       </section>
 
       <section class="help-sec" id="h-morning">
-        <h3>毎朝8時に起きること</h3>
+        <h3>毎朝7時に起きること</h3>
         <ol class="timeline">
-          <li><time>8:00</time><div><b>PCがスリープから起きる</b><br><span class="muted" style="font-size:13px">仕事中（12〜21時）は動かない</span></div></li>
-          <li><time>8:00</time><div><b>受信箱の取り込み</b><br><span class="muted" style="font-size:13px">アプリで送った返事を読んで、各フォルダへ振り分ける</span></div></li>
-          <li><time>8:01</time><div><b>工程A → 工程B → 工程C</b><br><span class="muted" style="font-size:13px">全部で数分〜十数分</span></div></li>
-          <li><time>8:05</time><div><b>アプリを更新</b><br><span class="muted" style="font-size:13px">右上の ↻ を押すと、最新の状態が出る</span></div></li>
-          <li><time>8:05</time><div><b>スリープに戻る</b><br><span class="muted" style="font-size:13px">ラインの最中にPCを触っていたら、スリープしないでそのまま</span></div></li>
+          <li><time>7:00</time><div><b>PCがスリープから起きる</b><br><span class="muted" style="font-size:13px">仕事中（12〜21時）は動かない</span></div></li>
+          <li><time>7:00</time><div><b>受信箱の取り込み</b><br><span class="muted" style="font-size:13px">アプリで送った返事を読んで、各フォルダへ振り分ける</span></div></li>
+          <li><time>7:01</time><div><b>工程A → 工程B → 工程C</b><br><span class="muted" style="font-size:13px">全部で数分〜十数分</span></div></li>
+          <li><time>7:05</time><div><b>アプリを更新</b><br><span class="muted" style="font-size:13px">右上の ↻ を押すと、最新の状態が出る</span></div></li>
+          <li><time>7:05</time><div><b>スリープに戻る</b><br><span class="muted" style="font-size:13px">ラインの最中にPCを触っていたら、スリープしないでそのまま</span></div></li>
         </ol>
-        <p class="muted" style="font-size:13px">送った返事は、その日の夜でも翌朝8時にまとめて反映されます。待てないときは「<a href="#h-now">今すぐ動かす</a>」で、その場で動かせます。</p>
+        <p class="muted" style="font-size:13px">送った返事は、その日の夜でも翌朝7時にまとめて反映されます。待てないときは「<a href="#h-now">今すぐ動かす</a>」で、その場で動かせます。</p>
       </section>
 
       <section class="help-sec" id="h-card">
@@ -570,8 +570,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><b>直して</b>：押すとメモ欄が開く。直してほしいことを書いて「送る」。<b>写真を追加</b>で参考写真やスクショも付けられる（4枚まで）</li>
           <li><b>ボツ</b>：作らない。ボツ置き場へ</li>
         </ul>
-        <div class="sent" aria-hidden="true"><p>送信済み：直して「支柱をもう少し太く」 → 次の8:00に反映</p><button type="button" class="btn" tabindex="-1" style="pointer-events:none">取り消す</button></div>
-        <p style="font-size:14px">送るとこの表示に変わります。翌朝8時までは<b>取り消す</b>で取り消せます。押し直したいときは、取り消してから押し直してください。</p>
+        <div class="sent" aria-hidden="true"><p>送信済み：直して「支柱をもう少し太く」 → 次の7:00に反映</p><button type="button" class="btn" tabindex="-1" style="pointer-events:none">取り消す</button></div>
+        <p style="font-size:14px">送るとこの表示に変わります。翌朝7時までは<b>取り消す</b>で取り消せます。押し直したいときは、取り消してから押し直してください。</p>
         <p style="font-size:14px"><b>直してのメモのコツ</b>：「どこを」「どうしたい」を具体的に。例：「ベンチの後ろ脚は座面の高さから真っすぐ下に」「全高を 8m に」。寸法や写真があると一発で直りやすいです。</p>
         <div class="decide demo-btns" aria-hidden="true" style="border-top:0;padding-top:0">
           <div class="btns one"><button type="button" class="act-prep" tabindex="-1">整えた → 工程Cへ</button></div>
@@ -581,7 +581,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
       <section class="help-sec" id="h-now">
         <h3>今すぐ動かす</h3>
-        <p style="font-size:14px">朝8時を待たずに、工場をその場で動かせます。<b>ライン</b>タブの一番上にあります。</p>
+        <p style="font-size:14px">朝7時を待たずに、工場をその場で動かせます。<b>ライン</b>タブの一番上にあります。</p>
         <div class="row demo-btns" aria-hidden="true" style="align-items:center;justify-content:space-between">
           <span style="font-size:14px"><b>直しを反映する</b> <span class="muted" style="font-size:12px">2 件</span></span>
           <button type="button" class="btn primary" tabindex="-1">今すぐ</button>
@@ -597,7 +597,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><time>〜5分</time><div><b>稼働中</b><br><span class="muted" style="font-size:13px">PCが5分おきに見に来て、見つけたら始める。送った返事の取り込みも一緒にやる</span></div></li>
           <li><time>数分〜</time><div><b>終わり</b><br><span class="muted" style="font-size:13px">アプリが自動で最新になる。新しくできたものは確認タブへ</span></div></li>
         </ol>
-        <p class="muted" style="font-size:13px">PCがスリープ中や電源オフのときは、次に起きたときに始まります。仕事中（12〜21時）でも、ボタンで頼んだときだけは動きます。朝8時のラインはこれとは別にいつも通り動きます。</p>
+        <p class="muted" style="font-size:13px">PCがスリープ中や電源オフのときは、次に起きたときに始まります。仕事中（12〜21時）でも、ボタンで頼んだときだけは動きます。朝7時のラインはこれとは別にいつも通り動きます。</p>
       </section>
 
       <section class="help-sec" id="h-stages">
@@ -619,7 +619,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       <section class="help-sec" id="h-faq">
         <h3>よくある質問</h3>
         <dl class="faq">
-          <dt>押したのに何も変わらない</dt><dd>返事は翌朝8時に反映されます。それまではカードが「送信済み」になっていれば大丈夫です。すぐ反映したいときは「今すぐ直す」などを押してください。</dd>
+          <dt>押したのに何も変わらない</dt><dd>返事は翌朝7時に反映されます。それまではカードが「送信済み」になっていれば大丈夫です。すぐ反映したいときは「今すぐ直す」などを押してください。</dd>
           <dt>「今すぐ」を押したのに始まらない</dt><dd>PCがスリープ中か、電源が切れています。PCが起きれば5分以内に始まります。朝のラインが動いている最中なら、それが終わってから始まります。</dd>
           <dt>最新の状態にしたい</dt><dd>右上の ↻ を押してください。工場の状況は、毎朝のラインの後に更新されます。</dd>
           <dt>「鍵が無効です」と出る</dt><dd>トークンの期限切れか、消してしまった可能性があります。GitHub で作り直して、設定タブで貼り直してください。</dd>
@@ -667,7 +667,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     if (d) {
       btns.hidden = true; fix.hidden = true; sent.hidden = false;
       const n = (d.photos || []).length;
-      sent.querySelector("p").textContent = "送信済み：" + (LABEL[d.action] || d.action) + (d.note ? "「" + d.note + "」" : "") + (n ? `（写真${n}枚）` : "") + " → 次の8:00に反映";
+      sent.querySelector("p").textContent = "送信済み：" + (LABEL[d.action] || d.action) + (d.note ? "「" + d.note + "」" : "") + (n ? `（写真${n}枚）` : "") + " → 次の7:00に反映";
       const now = sent.querySelector(".now"), mode = NOW_MODE[d.action];
       now.hidden = !mode;
       if (mode) { now.dataset.mode = mode; paintNow(now); }
