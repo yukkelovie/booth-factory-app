@@ -466,9 +466,13 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     });
     el.querySelector("#save").addEventListener("click", async () => {
       const t = el.querySelector("#tok").value.trim(), r = el.querySelector("#repo").value.trim() || DEFAULT_REPO;
+      const st = el.querySelector("#set-state");
+      if (t && !t.startsWith("•") && !/^(github_pat_|ghp_|gho_)\w{20,}$/.test(t)) {
+        st.textContent = "これは鍵の文字列ではないようです。トークンの名前ではなく、GitHubで作った直後に出る「github_pat_」で始まる長い文字列を貼ってください";
+        return;
+      }
       if (t && !t.startsWith("•")) store.set("gh_token", t);
       store.set("gh_repo", r);
-      const st = el.querySelector("#set-state");
       st.textContent = "接続を確かめています…";
       try { await api("data.json", { raw: true }); st.textContent = "つながりました"; imgCache.clear(); await refresh(); }
       catch (e) { st.textContent = errText(e); }
