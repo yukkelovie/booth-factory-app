@@ -73,7 +73,7 @@ code { font-family: var(--f-data); font-size: .88em; }
 /* タブバー */
 .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--surface); border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom, 0px); }
-.tabs-in { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+.tabs-in { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
 .tab { border: 0; background: transparent; min-height: var(--tabbar); display: grid; place-items: center; gap: 0; padding: 6px 0;
   cursor: pointer; color: var(--muted); position: relative; }
 .tab svg { width: 24px; height: 24px; }
@@ -162,6 +162,42 @@ textarea, input[type="text"], input[type="password"] { font-size: 16px; width: 1
 .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .row .btn { padding: 10px 16px; }
 ol.steps { margin: 0; padding-left: 1.4em; font-size: 14px; }
+
+/* 使い方 */
+.help-sec { scroll-margin-top: 90px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.help-sec h3 { margin: 0; font-size: 17px; font-weight: 900; }
+.help-sec p { margin: 0; }
+.help-toc { display: flex; flex-wrap: wrap; gap: 6px; }
+.help-toc a { font-size: 13px; color: var(--ink); text-decoration: none; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+.fl { display: grid; gap: 0; justify-items: stretch; }
+.fl-step { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); }
+.fl-step.you { background: var(--mark); border-color: var(--mark); color: var(--mark-ink); }
+.fl-step.you small { color: var(--mark-ink); opacity: .8; }
+.fl-ico { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; background: var(--surface); font-size: 18px; }
+.fl-step.you .fl-ico { background: var(--surface); color: var(--ink); }
+.fl-step b { display: block; line-height: 1.35; }
+.fl-step small { display: block; color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 2px; }
+.fl-arrow { text-align: center; color: var(--muted); line-height: 1; padding: 4px 0; font-size: 14px; }
+.fl-branch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.fl-branch > div { border-radius: 8px; padding: 8px; font-size: 12px; line-height: 1.45; border: 1px solid var(--line); background: var(--bg); min-width: 0; }
+.fl-branch b { display: block; font-size: 13px; }
+.fl-branch .ok { border-color: var(--ok); } .fl-branch .ok b { color: var(--ok); }
+.fl-branch .fix { border-color: var(--mark); } .fl-branch .fix b { color: var(--ink); }
+.fl-branch .ng { border-color: var(--warn); } .fl-branch .ng b { color: var(--warn); }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.timeline li { margin: 0; display: grid; grid-template-columns: 54px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.timeline li:last-child { border-bottom: 0; }
+.timeline time { font-family: var(--f-data); font-size: 13px; color: var(--muted); }
+.anno { position: relative; }
+.anno .tag { position: absolute; font-size: 11px; font-weight: 700; background: var(--mark); color: var(--mark-ink); padding: 1px 7px; border-radius: 999px; }
+.demo-btns { pointer-events: none; }
+dl.faq { margin: 0; display: grid; gap: 12px; }
+dl.faq dt { font-weight: 700; }
+dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.stage-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.stage-tbl th, .stage-tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.stage-tbl th { white-space: nowrap; }
+.stage-tbl td.you { font-weight: 700; }
 @media (max-width: 420px) { .flow b { font-size: 18px; } }
 </style>
 </head>
@@ -176,6 +212,7 @@ ol.steps { margin: 0; padding-left: 1.4em; font-size: 14px; }
 <main id="view-review" data-view="review"></main>
 <main id="view-line" data-view="line" hidden></main>
 <main id="view-log" data-view="log" hidden></main>
+<main id="view-help" data-view="help" hidden></main>
 <main id="view-settings" data-view="settings" hidden></main>
 
 <nav class="tabs" aria-label="画面の切り替え">
@@ -191,6 +228,10 @@ ol.steps { margin: 0; padding-left: 1.4em; font-size: 14px; }
     <button class="tab" type="button" data-tab="log">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
       <span>ログ</span>
+    </button>
+    <button class="tab" type="button" data-tab="help">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M10 8.5a2 2 0 1 1 2.5 1.9c-.4.2-.5.5-.5.9V12M12 14.5h.01"/></svg>
+      <span>使い方</span>
     </button>
     <button class="tab" type="button" data-tab="settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
@@ -435,6 +476,129 @@ ol.steps { margin: 0; padding-left: 1.4em; font-size: 14px; }
     el.querySelector("#forget").addEventListener("click", () => { store.del("gh_token"); renderSettings(); });
   }
 
+  function renderHelp() {
+    const el = document.getElementById("view-help");
+    const ex = data && (byStage("20_ready").concat(data.items).find(i => i.img && i.img.sheet));
+    const step = (ico, title, sub, you) => `<div class="fl-step${you ? " you" : ""}"><span class="fl-ico" aria-hidden="true">${ico}</span><div><b>${title}</b><small>${sub}</small></div></div>`;
+    const arrow = t => `<div class="fl-arrow" aria-hidden="true">↓${t ? " " + t : ""}</div>`;
+    el.innerHTML = `
+      <h2>使い方</h2>
+      <nav class="help-toc" aria-label="目次">
+        <a href="#h-flow">工場の流れ</a><a href="#h-morning">毎朝5時</a><a href="#h-card">カードの見方</a>
+        <a href="#h-reply">返事のしかた</a><a href="#h-stages">ラインの見方</a><a href="#h-faq">よくある質問</a>
+      </nav>
+
+      <section class="help-sec" id="h-flow">
+        <h3>工場の流れ</h3>
+        <p class="muted" style="font-size:13px">黄色いところが、あなたの出番です。それ以外は工場が勝手に進めます。</p>
+        <div class="fl">
+          ${step("💡", "アイデア（待ち行列）", "テーマ（いまは StreetPack）の作るものリスト。上から順に作る")}
+          ${arrow("朝5:00")}
+          ${step("🧱", "工程A：ブロックアウト", "Claude がざっくりした形を作る。1日に新作1つ＋直し最大3つ")}
+          ${arrow()}
+          ${step("🔍", "工程B：検品", "Claude が浮き・ポリゴン数・UV をチェックして、気になる所を直す")}
+          ${arrow()}
+          ${step("👀", "確認待ち", "4面図を見て OK／直して／ボツ を押す", true)}
+          ${arrow()}
+          <div class="fl-branch">
+            <div class="ok"><b>OK</b>OK済みへ</div>
+            <div class="fix"><b>直して</b>翌朝作り直して、また確認待ちに戻る</div>
+            <div class="ng"><b>ボツ</b>ボツ置き場へ</div>
+          </div>
+          ${arrow("OKのもの")}
+          ${step("🛠", "OK済み：Blender で整える", "40_approved のフォルダの .blend を自分で整えて「整えた」を押す", true)}
+          ${arrow("朝5:00")}
+          ${step("⚙️", "工程C：仕上げ前処理", "見えない面の削除・パーツ分け・テクスチャセット・UV・FBX書き出しを仮でやる")}
+          ${arrow()}
+          ${step("👀", "工程C確認待ち", "消す面（赤）とパーツ分けを見て OK（確定）／直して", true)}
+          ${arrow("OK（確定）")}
+          ${step("🎨", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ。ここから先は手作業")}
+        </div>
+      </section>
+
+      <section class="help-sec" id="h-morning">
+        <h3>毎朝5時に起きること</h3>
+        <ol class="timeline">
+          <li><time>5:00</time><div><b>PCがスリープから起きる</b><br><span class="muted" style="font-size:13px">仕事中（12〜21時）は動かない</span></div></li>
+          <li><time>5:00</time><div><b>受信箱の取り込み</b><br><span class="muted" style="font-size:13px">アプリで送った返事を読んで、各フォルダへ振り分ける</span></div></li>
+          <li><time>5:01</time><div><b>工程A → 工程B → 工程C</b><br><span class="muted" style="font-size:13px">全部で数分〜十数分</span></div></li>
+          <li><time>5:05</time><div><b>アプリを更新</b><br><span class="muted" style="font-size:13px">右上の ↻ を押すと、最新の状態が出る</span></div></li>
+          <li><time>5:05</time><div><b>スリープに戻る</b></div></li>
+        </ol>
+        <p class="muted" style="font-size:13px">送った返事は、その日の夜でも翌朝5時にまとめて反映されます。急ぎのときは Claude のチャットで「受信箱を取り込んで」と言えば、その場で反映できます。</p>
+      </section>
+
+      <section class="help-sec" id="h-card">
+        <h3>カードの見方</h3>
+        ${ex ? `<div class="anno">
+          ${pic(ex.img.sheet, ex.id + " の4面図")}
+          <span class="tag" style="left:2%;top:2%">正面</span><span class="tag" style="left:52%;top:2%">左側面</span>
+          <span class="tag" style="left:2%;top:52%">上面</span><span class="tag" style="left:52%;top:52%">パース</span>
+        </div>
+        <p class="muted" style="font-size:12px">例：${esc(ex.name)}</p>` : '<p class="muted">（データを読み込むと、ここに本物の4面図が出ます）</p>'}
+        <p><b>4面図</b>：正面・左側面・上面・パース（斜めから）の4方向。形と比率をここで見ます。</p>
+        <div class="chips">
+          <span class="chip ok">ポリ 476 / 6,000</span><span class="chip ok">浮きなし</span><span class="chip plain">マテリアル 6</span>
+        </div>
+        <ul style="font-size:14px">
+          <li><b>ポリ</b>：三角形の数 / 予算。予算はサイズで決まる（1m未満 1,500、2.5m未満 3,000、それ以上 6,000）。超えると赤</li>
+          <li><b>浮き</b>：どこにもくっついていない部品の数。0 が正解。あると赤</li>
+          <li><b>マテリアル</b>：色分けの数。ブロックアウトでは目安</li>
+          <li><b>見てほしい点</b>：工程Bが「ここは判断してほしい」と書いたこと。返事の参考に</li>
+          <li><b>工程Bで直したこと</b>：検品で自動で直したこと</li>
+          <li><b>UVチェッカー</b>（たためる）：UV の伸び・つぶれの確認用。市松模様がゆがんでいなければ OK</li>
+        </ul>
+      </section>
+
+      <section class="help-sec" id="h-reply">
+        <h3>返事のしかた</h3>
+        <div class="decide demo-btns" aria-hidden="true" style="border-top:0;padding-top:0">
+          <div class="btns"><button type="button" class="act-ok" tabindex="-1">OK</button><button type="button" class="act-fix" tabindex="-1">直して</button><button type="button" class="act-reject" tabindex="-1">ボツ</button></div>
+        </div>
+        <ul style="font-size:14px">
+          <li><b>OK</b>：このままで良い。OK済みに進む</li>
+          <li><b>直して</b>：押すとメモ欄が開く。直してほしいことを書いて「送る」。<b>写真を追加</b>で参考写真やスクショも付けられる（4枚まで）</li>
+          <li><b>ボツ</b>：作らない。ボツ置き場へ</li>
+        </ul>
+        <div class="sent" aria-hidden="true"><p>送信済み：直して「支柱をもう少し太く」 → 次の5:00に反映</p><button type="button" class="btn" tabindex="-1" style="pointer-events:none">取り消す</button></div>
+        <p style="font-size:14px">送るとこの表示に変わります。翌朝5時までは<b>取り消す</b>で取り消せます。押し直したいときは、取り消してから押し直してください。</p>
+        <p style="font-size:14px"><b>直してのメモのコツ</b>：「どこを」「どうしたい」を具体的に。例：「ベンチの後ろ脚は座面の高さから真っすぐ下に」「全高を 8m に」。寸法や写真があると一発で直りやすいです。</p>
+        <div class="decide demo-btns" aria-hidden="true" style="border-top:0;padding-top:0">
+          <div class="btns one"><button type="button" class="act-prep" tabindex="-1">整えた → 工程Cへ</button></div>
+        </div>
+        <p style="font-size:14px"><b>整えた</b>（OK済みのもの）：Blender で整え終わったら押す。メモ欄に「扉はギミックにしたい」「UVはそのまま」など工程Cへの指示を書けます（なくてもOK）。</p>
+      </section>
+
+      <section class="help-sec" id="h-stages">
+        <h3>ラインの見方（各段の意味）</h3>
+        <table class="stage-tbl">
+          <tr><th>待ち行列</th><td>まだ作っていないアイデア</td></tr>
+          <tr><th>工程A済み</th><td>形ができて、検品待ち（ふつうは朝のうちに通過）</td></tr>
+          <tr><th>確認待ち</th><td class="you">あなたの確認待ち</td></tr>
+          <tr><th>直し待ち</th><td>「直して」を受けて、翌朝の作り直し待ち</td></tr>
+          <tr><th>OK済み</th><td class="you">Blender で整えて「整えた」を押す番</td></tr>
+          <tr><th>工程C待ち</th><td>翌朝の仕上げ前処理待ち</td></tr>
+          <tr><th>C確認待ち</th><td class="you">工程Cの結果の確認待ち</td></tr>
+          <tr><th>テクスチャ待ち</th><td>Substance Painter で塗る番（手作業）</td></tr>
+          <tr><th>ボツ</th><td>作らないことにしたもの</td></tr>
+        </table>
+        <p class="muted" style="font-size:13px">太字があなたの出番。確認タブの赤い数字は、確認待ち＋C確認待ちの件数です。</p>
+      </section>
+
+      <section class="help-sec" id="h-faq">
+        <h3>よくある質問</h3>
+        <dl class="faq">
+          <dt>押したのに何も変わらない</dt><dd>返事は翌朝5時に反映されます。それまではカードが「送信済み」になっていれば大丈夫です。</dd>
+          <dt>最新の状態にしたい</dt><dd>右上の ↻ を押してください。工場の状況は、毎朝のラインの後に更新されます。</dd>
+          <dt>「鍵が無効です」と出る</dt><dd>トークンの期限切れか、消してしまった可能性があります。GitHub で作り直して、設定タブで貼り直してください。</dd>
+          <dt>PC でも見たい</dt><dd>同じ URL を開いて、PC 用のトークンを設定タブに貼れば見られます。データは共通です。</dd>
+          <dt>スマホを無くした</dt><dd>GitHub の Settings → Developer settings → Fine-grained tokens で、スマホ用のトークンを Delete してください。</dd>
+          <dt>アイデアを足したい・順番を変えたい</dt><dd>00_ideas\\ideas.md を直接書き換えるか、Claude のチャットで頼んでください。</dd>
+        </dl>
+      </section>`;
+    hydrateImgs(el);
+  }
+
   const noData = () => loadErr ? `<p class="banner err">${esc(loadErr)}</p>` : '<p class="muted">読み込み中…</p>';
 
   // ---------------------------------------------------------------- 返事（inbox/<Item>.json）
@@ -567,6 +731,7 @@ ol.steps { margin: 0; padding-left: 1.4em; font-size: 14px; }
     document.getElementById("title").textContent = data ? `${data.theme} 工場` : "BOOTH工場";
     document.getElementById("when").textContent = data ? `更新 ${fmt(data.updated)} ・ 次のライン ${fmt(data.next_run).split(" ")[0]} 5:00` : "";
     renderReview(); renderLine(); renderLog();
+    if (!document.getElementById("view-help").hidden) renderHelp();
   }
 
   async function refresh() {
@@ -591,6 +756,7 @@ ol.steps { margin: 0; padding-left: 1.4em; font-size: 14px; }
     document.querySelectorAll(".tab").forEach(t => { if (t.dataset.tab === name) t.setAttribute("aria-current", "page"); else t.removeAttribute("aria-current"); });
     document.querySelectorAll("main").forEach(m => { m.hidden = m.dataset.view !== name; });
     if (name === "settings") renderSettings();
+    if (name === "help") renderHelp();
     window.scrollTo(0, 0);
     try { sessionStorage.setItem("tab", name); } catch (e) {}
   }
