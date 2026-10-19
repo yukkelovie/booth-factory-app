@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>BOOTH工場</title>
+<title>3Dアセット工場</title>
 <meta name="theme-color" content="#e5b100">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="BOOTH工場">
+<meta name="apple-mobile-web-app-title" content="3Dアセット工場">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -204,7 +204,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 <body>
 <header class="top">
   <div class="top-in">
-    <h1><span class="stripe" aria-hidden="true"></span><span id="title">BOOTH工場</span><p class="when" id="when"></p></h1>
+    <h1><span class="stripe" aria-hidden="true"></span><span id="title">3Dアセット工場</span><p class="when" id="when"></p></h1>
     <button class="reload" id="reload" type="button" aria-label="最新にする">↻</button>
   </div>
 </header>
@@ -492,7 +492,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <h3>工場の流れ</h3>
         <p class="muted" style="font-size:13px">黄色いところが、あなたの出番です。それ以外は工場が勝手に進めます。</p>
         <div class="fl">
-          ${step("💡", "アイデア（待ち行列）", "テーマ（いまは StreetPack）の作るものリスト。上から順に作る")}
+          ${step("💡", "アイデア（待ち行列）", `テーマ（いまは ${esc(data ? data.theme : "—")}）の作るものリスト。上から順に作る。テーマを変えれば別のジャンルも作れる`)}
           ${arrow("朝5:00")}
           ${step("🧱", "工程A：ブロックアウト", "Claude がざっくりした形を作る。1日に新作1つ＋直し最大3つ")}
           ${arrow()}
@@ -728,8 +728,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   }
 
   function renderAll() {
-    document.getElementById("title").textContent = data ? `${data.theme} 工場` : "BOOTH工場";
-    document.getElementById("when").textContent = data ? `更新 ${fmt(data.updated)} ・ 次のライン ${fmt(data.next_run).split(" ")[0]} 5:00` : "";
+    document.getElementById("title").textContent = "3Dアセット工場";
+    document.getElementById("when").textContent = data ? `テーマ ${data.theme} ・ 更新 ${fmt(data.updated)} ・ 次 ${fmt(data.next_run).split(" ")[0]} 5:00` : "";
     renderReview(); renderLine(); renderLog();
     if (!document.getElementById("view-help").hidden) renderHelp();
   }

@@ -1,6 +1,6 @@
-﻿{
-  "name": "BOOTH工場",
-  "short_name": "BOOTH工場",
+{
+  "name": "3Dアセット工場",
+  "short_name": "3Dアセット工場",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
