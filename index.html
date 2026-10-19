@@ -394,8 +394,11 @@ ol.steps { margin: 0; padding-left: 1.4em; font-size: 14px; }
       <h2>鍵（GitHub トークン）</h2>
       <p class="muted" style="font-size:13px">工場のデータは非公開リポジトリにあります。読み書きするための鍵をここに入れます。鍵はこの端末の中だけに保存されます。</p>
       <div class="form">
-        <label for="tok">トークン</label>
-        <input type="password" id="tok" autocomplete="off" spellcheck="false" placeholder="github_pat_…" value="${c.token ? "••••••••" : ""}">
+        <label for="tok">トークン（GitHubで作った <code>github_pat_…</code> をコピーして貼り付け）</label>
+        <div class="row" style="flex-wrap:nowrap">
+          <input type="password" id="tok" autocomplete="off" spellcheck="false" placeholder="github_pat_… を貼り付け" value="${c.token ? "••••••••" : ""}" style="flex:1;min-width:0">
+          <button type="button" class="btn" id="peek" aria-pressed="false">表示</button>
+        </div>
         <label for="repo">リポジトリ</label>
         <input type="text" id="repo" autocomplete="off" spellcheck="false" value="${esc(c.repo)}">
         <div class="row">
@@ -414,6 +417,12 @@ ol.steps { margin: 0; padding-left: 1.4em; font-size: 14px; }
       </ol>
       <p class="muted" style="font-size:12px">ホーム画面に追加したアプリと、ブラウザで開いたページは保存場所が別なので、それぞれで一度入れてください。</p>`;
     el.querySelector("#tok").addEventListener("focus", e => { if (e.target.value.startsWith("•")) e.target.value = ""; });
+    el.querySelector("#peek").addEventListener("click", e => {
+      const tok = el.querySelector("#tok"), show = tok.type === "password";
+      tok.type = show ? "text" : "password";
+      e.currentTarget.textContent = show ? "隠す" : "表示";
+      e.currentTarget.setAttribute("aria-pressed", String(show));
+    });
     el.querySelector("#save").addEventListener("click", async () => {
       const t = el.querySelector("#tok").value.trim(), r = el.querySelector("#repo").value.trim() || DEFAULT_REPO;
       if (t && !t.startsWith("•")) store.set("gh_token", t);
