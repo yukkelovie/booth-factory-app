@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BOOTH工場</title>
+<meta name="theme-color" content="#e5b100">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BOOTH工場">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* レイアウト：上にヘッダー、下にタブバー（確認／ライン／ログ／設定）。中身は1カラムの縦スクロール */
+:root {
+  --bg: #ecebe7;        /* コンクリート */
+  --surface: #f8f7f4;
+  --ink: #1f2326;       /* アスファルト */
+  --muted: #676b6e;
+  --line: #d3d1cb;
+  --mark: #e5b100;      /* 道路標示の黄 */
+  --mark-ink: #1f2326;
+  --ok: #2f7a4a;
+  --warn: #b5481d;
+  --f-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --f-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --tabbar: 64px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #17191b; --surface: #212427; --ink: #e9e7e2; --muted: #9a9ea1; --line: #34383b;
+  --mark: #f0c21a; --mark-ink: #17191b; --ok: #6cc28c; --warn: #f08a5d; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #17191b; --surface: #212427; --ink: #e9e7e2; --muted: #9a9ea1; --line: #34383b;
+  --mark: #f0c21a; --mark-ink: #17191b; --ok: #6cc28c; --warn: #f08a5d; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.65;
+  -webkit-text-size-adjust: 100%; }
+button, input, textarea { font: inherit; color: inherit; }
+img { max-width: 100%; display: block; }
+[hidden] { display: none !important; }
+
+.top { position: sticky; top: 0; z-index: 5; background: var(--bg);
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--line); }
+.top-in { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.top h1 { margin: 0; font-size: 20px; font-weight: 900; line-height: 1.2; flex: 1; min-width: 0; }
+.stripe { display: inline-block; width: 16px; height: 16px; margin-right: 8px; vertical-align: -1px;
+  background: repeating-linear-gradient(-45deg, var(--mark) 0 4px, var(--ink) 4px 8px); border-radius: 3px; }
+.when { margin: 2px 0 0; font-size: 12px; color: var(--muted); font-weight: 400; }
+.reload { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; min-width: 44px; min-height: 44px;
+  cursor: pointer; font-size: 18px; }
+.reload.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+main { max-width: 720px; margin: 0 auto;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 32px) max(16px, env(safe-area-inset-left, 0px));
+  display: grid; gap: 22px; }
+h2 { font-size: 18px; font-weight: 900; margin: 6px 0 -10px; }
+h2 small { font-family: var(--f-data); font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 6px; }
+h4 { font-size: 13px; margin: 6px 0 0; color: var(--muted); letter-spacing: .04em; }
+ul { margin: 0; padding-left: 1.2em; } li { margin: 2px 0; }
+code { font-family: var(--f-data); font-size: .88em; }
+.muted { color: var(--muted); margin: 0; }
+.hint { font-size: 12px; margin-top: -6px; }
+.banner { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--mark); color: var(--mark-ink); font-weight: 700; }
+.banner.err { background: transparent; color: var(--warn); border: 1px solid var(--warn); }
+
+/* タブバー */
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--surface); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tabs-in { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+.tab { border: 0; background: transparent; min-height: var(--tabbar); display: grid; place-items: center; gap: 0; padding: 6px 0;
+  cursor: pointer; color: var(--muted); position: relative; }
+.tab svg { width: 24px; height: 24px; }
+.tab span { font-size: 11px; line-height: 1.2; }
+.tab[aria-current="page"] { color: var(--ink); font-weight: 700; }
+.tab[aria-current="page"]::before { content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 3px; background: var(--mark); border-radius: 0 0 3px 3px; }
+.badge { position: absolute; top: 6px; left: calc(50% + 6px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+  background: var(--warn); color: #fff; font-family: var(--f-data); font-size: 11px; line-height: 18px; text-align: center; }
+.tab:focus-visible, button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+
+/* ラインの状況 */
+.flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 6px; }
+.flow li { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 4px; text-align: center; display: grid; gap: 2px; }
+.flow b { font-family: var(--f-data); font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.flow span { font-size: 11px; color: var(--muted); }
+.flow li.hot { background: var(--mark); border-color: var(--mark); }
+.flow li.hot b, .flow li.hot span { color: var(--mark-ink); }
+
+/* カード */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.card h3 { margin: 0; font-size: 20px; font-weight: 900; line-height: 1.3; }
+.code { margin: 0; font-family: var(--f-data); font-size: 12px; color: var(--muted); }
+.dims { margin: 0; font-family: var(--f-data); font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dims span, .dims small { color: var(--muted); }
+.pic { width: 100%; border-radius: 8px; border: 1px solid var(--line); background: var(--line); min-height: 120px; object-fit: contain; }
+.pic.loading { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .5; } }
+.legend { margin: -4px 0 0; font-size: 11px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--f-data); font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; }
+.chip.ok { color: var(--ok); } .chip.warn { color: var(--warn); font-weight: 700; } .chip.plain { color: var(--muted); }
+details.sub { border-top: 1px solid var(--line); padding-top: 8px; }
+details.sub summary { cursor: pointer; font-size: 13px; color: var(--muted); min-height: 32px; }
+details.sub .pic { margin-top: 8px; }
+details.sub pre { white-space: pre-wrap; font-size: 12px; margin: 8px 0 0; font-family: var(--f-body); }
+.meta { margin: 0; font-size: 11px; color: var(--muted); font-family: var(--f-data); }
+
+/* 返事 */
+.decide { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+.btns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.btns.one { grid-template-columns: 1fr; } .btns.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.decide button, .btn { font-weight: 700; padding: 10px 6px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--bg); cursor: pointer; min-height: 44px; }
+.decide button:disabled, .btn:disabled { opacity: .45; cursor: default; }
+.act-ok, .act-prep_ok { background: var(--ok) !important; border-color: var(--ok) !important; color: var(--surface); }
+.act-fix, .act-prep_fix, .act-prep, .btn.primary { background: var(--mark) !important; border-color: var(--mark) !important; color: var(--mark-ink); }
+.act-reject { color: var(--warn); border-color: var(--warn) !important; background: transparent !important; }
+.fixbox { display: grid; gap: 6px; }
+.fixbox label { font-size: 13px; color: var(--muted); }
+textarea, input[type="text"], input[type="password"] { font-size: 16px; width: 100%; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--bg); resize: vertical; }
+.photo-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.photo-row .btn { font-weight: 400; min-height: 40px; padding: 6px 14px; }
+.thumbs { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; flex-wrap: wrap; }
+.thumbs:empty { display: none; }
+.thumbs li { margin: 0; position: relative; width: 72px; height: 72px; }
+.thumbs img { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); background: var(--line); }
+.thumbs .rm { position: absolute; top: -6px; right: -6px; width: 26px; height: 26px; min-height: 0; padding: 0; border-radius: 999px;
+  font-size: 14px; line-height: 1; background: var(--ink); color: var(--surface); border: 2px solid var(--surface); }
+.sent { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: 8px; background: var(--bg); }
+.sent p { margin: 0; font-weight: 700; min-width: 0; }
+.sent .btn { background: transparent; min-height: 36px; padding: 6px 12px; font-weight: 400; }
+.state { margin: 0; font-size: 12px; color: var(--muted); }
+.state:empty { display: none; }
+
+/* 棚（サムネ一覧） */
+.shelf { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.shelf > li { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px; display: grid; gap: 4px; min-width: 0; align-content: start; }
+.shelf .pic { aspect-ratio: 1; min-height: 0; object-fit: cover; border-radius: 6px; }
+.s-name { margin: 0; font-weight: 700; font-size: 14px; line-height: 1.3; }
+.s-meta { margin: 0; font-family: var(--f-data); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.shelf .decide { padding-top: 8px; gap: 6px; }
+.shelf .decide button { font-size: 13px; }
+
+.queue { list-style: none; margin: 0; padding: 0; }
+.queue li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); margin: 0; }
+.queue li:first-child span::before { content: "次 "; font-family: var(--f-data); font-size: 11px; background: var(--mark); color: var(--mark-ink); padding: 1px 6px; border-radius: 4px; margin-right: 6px; }
+.queue code { color: var(--muted); font-size: 12px; }
+.logs { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.logs > li { margin: 0; }
+.log-h { margin: 0; font-family: var(--f-data); font-size: 12px; color: var(--muted); }
+.logs ul { font-size: 13px; }
+.form { display: grid; gap: 8px; }
+.form label { font-size: 13px; color: var(--muted); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.row .btn { padding: 10px 16px; }
+ol.steps { margin: 0; padding-left: 1.4em; font-size: 14px; }
+@media (max-width: 420px) { .flow b { font-size: 18px; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <h1><span class="stripe" aria-hidden="true"></span><span id="title">BOOTH工場</span><p class="when" id="when"></p></h1>
+    <button class="reload" id="reload" type="button" aria-label="最新にする">↻</button>
+  </div>
+</header>
+
+<main id="view-review" data-view="review"></main>
+<main id="view-line" data-view="line" hidden></main>
+<main id="view-log" data-view="log" hidden></main>
+<main id="view-settings" data-view="settings" hidden></main>
+
+<nav class="tabs" aria-label="画面の切り替え">
+  <div class="tabs-in">
+    <button class="tab" type="button" data-tab="review" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>
+      <span>確認</span><b class="badge" id="badge" hidden></b>
+    </button>
+    <button class="tab" type="button" data-tab="line">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="4" height="6" rx="1"/></svg>
+      <span>ライン</span>
+    </button>
+    <button class="tab" type="button" data-tab="log">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      <span>ログ</span>
+    </button>
+    <button class="tab" type="button" data-tab="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      <span>設定</span>
+    </button>
+  </div>
+</nav>
+
+<script>
+(() => {
+  // ---------------------------------------------------------------- 設定・GitHub API
+  // データは非公開リポジトリ（data.json と img/）、返事は同じリポジトリの inbox/ にファイルで置く。PCが朝5:00に読む
+  const DEFAULT_REPO = "yukkelovie/booth-factory";
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return mem[k] || null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} mem[k] = v; },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} delete mem[k]; },
+  };
+  const mem = {};
+  const cfg = () => ({ token: store.get("gh_token") || "", repo: store.get("gh_repo") || DEFAULT_REPO });
+
+  class ApiError extends Error { constructor(status, msg) { super(msg); this.status = status; } }
+  async function api(path, { method = "GET", body, raw = false } = {}) {
+    const { token, repo } = cfg();
+    if (!token) throw new ApiError(0, "no_token");
+    const r = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+      method, cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: raw ? "application/vnd.github.raw+json" : "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...(body ? { "Content-Type": "application/json" } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!r.ok) throw new ApiError(r.status, `${r.status}`);
+    return r;
+  }
+  const b64utf8 = s => { const u = new TextEncoder().encode(s); let b = ""; for (const c of u) b += String.fromCharCode(c); return btoa(b); };
+  const blobB64 = blob => new Promise((ok, ng) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(",")[1]); fr.onerror = ng; fr.readAsDataURL(blob); });
+  const errText = e => e.message === "no_token" ? "設定タブで鍵（トークン）を入れてください"
+    : e.status === 401 ? "鍵（トークン）が無効です。設定タブで入れ直してください"
+    : e.status === 403 ? "鍵に権限がないか、回数制限です。少し待ってください"
+    : e.status === 404 ? "リポジトリが見つかりません（鍵の対象リポジトリを確認）"
+    : e.status === 409 || e.status === 422 ? "他の送信とぶつかりました。もう一度押してください"
+    : "通信できませんでした（" + (e.status || "オフライン") + "）";
+
+  // 画像は非公開なので、鍵付きで取ってきて blob URL にする
+  const imgCache = new Map();
+  function loadImg(el) {
+    const path = el.dataset.src;
+    if (!path) return;
+    if (imgCache.has(path)) { imgCache.get(path).then(u => { el.src = u; el.classList.remove("loading"); }); return; }
+    const p = api(path, { raw: true }).then(r => r.blob()).then(b => URL.createObjectURL(b));
+    imgCache.set(path, p);
+    p.then(u => { el.src = u; el.classList.remove("loading"); }).catch(() => { imgCache.delete(path); el.classList.remove("loading"); el.alt = "画像を読めませんでした"; });
+  }
+  const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { io.unobserve(e.target); loadImg(e.target); }
+  }), { rootMargin: "400px" }) : null;
+  const hydrateImgs = root => root.querySelectorAll("img[data-src]").forEach(el => io ? io.observe(el) : loadImg(el));
+
+  // ---------------------------------------------------------------- 描画
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/`(.+?)`/g, "<code>$1</code>");
+  const fmt = iso => { if (!iso) return ""; const d = new Date(iso); return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`; };
+  const pic = (path, alt, cls = "pic") => path ? `<img class="${cls} loading" data-src="${esc(path)}" alt="${esc(alt)}">` : "";
+  const list = (title, xs) => xs && xs.length ? `<h4>${title}</h4><ul>${xs.map(x => `<li>${md(x)}</li>`).join("")}</ul>` : "";
+  const short = it => it.name.split("／")[0];
+
+  const LABEL = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた", prep_ok: "工程C確定", prep_fix: "工程Cの直し" };
+  const MODES = {
+    review: { acts: ["ok", "fix", "reject"], cls: "", note: { fix: ["直してほしいこと", "例：支柱をもう少し太く。屋根はフラットに"] } },
+    prep: { acts: ["prep"], cls: "one", note: { prep: ["工程Cへのメモ（なくてもOK）", "例：扉はギミックにしたい／UVはそのまま"] } },
+    prep_review: { acts: ["prep_ok", "prep_fix"], cls: "two", note: { prep_fix: ["工程Cへの直し", "例：取っ手の面は消さないで／ガラスは別のテクスチャセットに"] } },
+  };
+  const BTN_TEXT = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた → 工程Cへ", prep_ok: "OK（確定）", prep_fix: "直して" };
+  const NOTE_REQUIRED = ["fix", "prep_fix"];
+
+  function decideUI(it, mode) {
+    const m = MODES[mode];
+    return `<div class="decide" data-item="${esc(it.id)}" data-mode="${mode}">
+      <div class="btns ${m.cls}">${m.acts.map(a => `<button type="button" class="act-${a}" data-act="${a}">${BTN_TEXT[a]}</button>`).join("")}</div>
+      <div class="fixbox" hidden>
+        <label></label>
+        <textarea rows="3"></textarea>
+        <div class="photo-row">
+          <input type="file" accept="image/*" multiple hidden>
+          <button type="button" class="btn add-photo">写真を追加</button>
+          <span class="muted" style="font-size:12px">参考写真・スクショ（4枚まで）</span>
+        </div>
+        <ul class="thumbs"></ul>
+        <button type="button" class="btn primary send">送る</button>
+      </div>
+      <div class="sent" hidden><p></p><button type="button" class="btn undo">取り消す</button></div>
+      <p class="state" aria-live="polite"></p>
+    </div>`;
+  }
+
+  function card(it, mode) {
+    const d = it.dims || [0, 0, 0];
+    const fb = it.feedback ? `<details class="sub"><summary>feedback.md</summary><pre>${esc(it.feedback)}</pre></details>` : "";
+    return `<article class="card" id="item-${esc(it.id)}">
+      <header class="card-head"><div><h3>${esc(it.name)}</h3><p class="code">${esc(it.id)}</p></div>
+        <p class="dims">${d[0].toFixed(2)}<span>×</span>${d[1].toFixed(2)}<span>×</span>${d[2].toFixed(2)}<small> m</small></p></header>
+      ${it.img.sheet ? pic(it.img.sheet, it.id + " の4面図（正面・左側面・上面・パース）") + '<p class="legend">左上 正面 ／ 右上 左側面 ／ 左下 上面 ／ 右下 パース</p>' : '<p class="muted">画像なし</p>'}
+      <div class="chips">
+        <span class="chip ${it.tris <= it.budget ? "ok" : "warn"}">ポリ ${it.tris.toLocaleString()} / ${it.budget.toLocaleString()}</span>
+        <span class="chip ${it.floating ? "warn" : "ok"}">${it.floating ? "浮き " + it.floating : "浮きなし"}</span>
+        <span class="chip plain">マテリアル ${esc(it.materials ?? "—")}</span>
+      </div>
+      ${list("見てほしい点", it.look)}
+      ${list("工程Bで直したこと", it.fixed)}
+      ${mode ? decideUI(it, mode) : ""}
+      ${it.img.uv ? `<details class="sub"><summary>UVチェッカー</summary>${pic(it.img.uv, "UVチェッカー")}</details>` : ""}
+      ${fb}
+      <p class="meta">ビルド ${esc(it.built)}</p>
+    </article>`;
+  }
+
+  function prepCard(it) {
+    const p = it.prep || {};
+    return `<article class="card" id="item-${esc(it.id)}">
+      <header class="card-head"><div><h3>${esc(short(it))}</h3><p class="code">${esc(it.id)} ・ 工程Cの仮の結果</p></div></header>
+      ${it.img.hidden ? `<h4>消す面（赤）</h4>${pic(it.img.hidden, "削除面プレビュー")}<p class="legend">赤＝消す（部品に完全に埋まった面）／オレンジ＝一部隠れ（残す）／半透明＝残す</p>` : ""}
+      <div class="chips">
+        <span class="chip warn">消す ${p.removed ?? 0} 面</span>
+        <span class="chip plain">low ${(p.low_tris || 0).toLocaleString()} tris</span>
+        <span class="chip plain">high ${(p.high_tris || 0).toLocaleString()} tris</span>
+        <span class="chip plain">ギミック ${esc((p.gimmicks || []).join("、") || "なし")}</span>
+      </div>
+      ${it.img.sets ? `<h4>パーツ分け・テクスチャセット（色＝セット）</h4>${pic(it.img.sets, "テクスチャセット色分け")}` : ""}
+      ${(p.objects || []).length ? `<h4>オブジェクト</h4><ul>${p.objects.map(o => `<li><code>${esc(o.name)}</code> ${o.tris.toLocaleString()} tris ・ ${esc(o.sets.join(" / "))}</li>`).join("")}</ul>` : ""}
+      ${Object.keys(p.sets || {}).length ? `<h4>テクスチャセット</h4><ul>${Object.entries(p.sets).map(([s, os]) => `<li><b>${esc(s)}</b>：${esc(os.join("、"))}</li>`).join("")}</ul>` : ""}
+      ${list("確認してほしい点", p.look)}
+      ${decideUI(it, "prep_review")}
+    </article>`;
+  }
+
+  function shelf(its, mode) {
+    return `<ul class="shelf">${its.map(it => {
+      const d = it.dims || [0, 0, 0];
+      const meta = it.prep && it.stage === "60_texturing"
+        ? `low ${(it.prep.low_tris || 0).toLocaleString()} ・ high ${(it.prep.high_tris || 0).toLocaleString()} tris ・ ${Object.keys(it.prep.sets || {}).length}セット`
+        : `${d[0].toFixed(2)}×${d[1].toFixed(2)}×${d[2].toFixed(2)} m ・ ${it.tris.toLocaleString()} tris`;
+      return `<li>${pic(it.img.persp, it.id + " のパース")}<p class="s-name">${esc(short(it))}</p><p class="s-meta">${meta}</p>${mode ? decideUI(it, mode) : ""}</li>`;
+    }).join("")}</ul>`;
+  }
+
+  let data = null, inbox = {}, loadErr = null;
+  const byStage = s => data ? data.items.filter(i => i.stage === s) : [];
+
+  function renderReview() {
+    const el = document.getElementById("view-review");
+    if (!data) { el.innerHTML = noData(); return; }
+    const ready = byStage("20_ready"), prep = byStage("55_prep_review"), ok = byStage("40_approved");
+    el.innerHTML = `
+      ${data.exhausted ? '<p class="banner">テーマのアイデアが尽きました。次のテーマを決めてください。</p>' : ""}
+      <h2>確認待ち <small>${ready.length} 点</small></h2>
+      ${ready.map(it => card(it, "review")).join("") || '<p class="muted">確認待ちはありません。次は朝5時のラインで届きます。</p>'}
+      ${prep.length ? `<h2>工程C確認待ち <small>${prep.length} 点</small></h2><p class="muted hint">消す面とパーツ分けを確認して「OK（確定）」でテクスチャ待ちへ。直す所があれば「直して」</p>${prep.map(prepCard).join("")}` : ""}
+      ${ok.length ? `<h2>OK済み <small>${ok.length} 点</small></h2><p class="muted hint">Blenderで整えたら「整えた」を押すと、翌朝の工程Cが仕上げ前処理をします</p>${shelf(ok, "prep")}` : ""}
+      <p class="muted" style="font-size:12px">返事は翌朝5:00のラインが反映します（OK → 40_approved、直して → 30_feedback で作り直し、ボツ → 99_rejected）。</p>`;
+    wireDecide(el);
+    hydrateImgs(el);
+    const n = ready.length + prep.length;
+    const b = document.getElementById("badge");
+    b.textContent = n; b.hidden = !n;
+  }
+
+  function renderLine() {
+    const el = document.getElementById("view-line");
+    if (!data) { el.innerHTML = noData(); return; }
+    const counts = [[data.todo.length, "待ち行列"], ...data.stages.map(s => [byStage(s.id).length, s.label])];
+    const sections = [["30_feedback", "直し待ち", "翌朝5:00の工程Aが作り直します"], ["10_blockout", "工程A済み", "工程Bの検品待ち"],
+      ["50_prep", "工程C待ち", "翌朝5:00の工程Cで、見えない面の削除・パーツ分け・UV・FBX書き出しを仮でやります"],
+      ["60_texturing", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ"], ["99_rejected", "ボツ", ""]];
+    el.innerHTML = `
+      <ol class="flow" aria-label="ラインの状況">${counts.map(([n, l]) => `<li class="${l === "確認待ち" && n ? "hot" : ""}"><b>${n}</b><span>${l}</span></li>`).join("")}</ol>
+      ${sections.map(([s, l, h]) => { const its = byStage(s); return its.length ? `<h2>${l} <small>${its.length} 点</small></h2>${h ? `<p class="muted hint">${h}</p>` : ""}${s === "30_feedback" ? its.map(it => card(it)).join("") : shelf(its)}` : ""; }).join("")}
+      <h2>次に作るもの <small>${data.todo.length} 件</small></h2>
+      <ul class="queue">${data.todo.slice(0, 8).map(t => `<li><span>${esc(t.name)}</span><code>${esc(t.code)}</code></li>`).join("") || "<li><span>待ち行列は空です</span></li>"}</ul>
+      ${data.todo.length > 8 ? `<p class="muted">ほか ${data.todo.length - 8} 件</p>` : ""}`;
+    hydrateImgs(el);
+  }
+
+  function renderLog() {
+    const el = document.getElementById("view-log");
+    const sent = Object.values(inbox);
+    el.innerHTML = `
+      <h2>送った返事 <small>${sent.length} 件</small></h2>
+      ${sent.length ? `<ul class="logs">${sent.map(d => `<li><p class="log-h">${fmt(d.at)} ・ 次の5:00に反映</p><ul><li><b>${esc(d.item)}</b>：${esc(LABEL[d.action] || d.action)}${d.note ? "「" + esc(d.note) + "」" : ""}${(d.photos || []).length ? `（写真${d.photos.length}枚）` : ""}</li></ul></li>`).join("")}</ul>` : '<p class="muted">まだ反映されていない返事はありません。</p>'}
+      <h2>工場のログ</h2>
+      ${data ? `<ul class="logs">${data.logs.map(l => `<li><p class="log-h">${esc(l.title)}</p><ul>${l.lines.map(x => `<li>${md(x)}</li>`).join("")}</ul></li>`).join("")}</ul>` : noData()}`;
+  }
+
+  function renderSettings() {
+    const el = document.getElementById("view-settings");
+    const c = cfg();
+    el.innerHTML = `
+      <h2>鍵（GitHub トークン）</h2>
+      <p class="muted" style="font-size:13px">工場のデータは非公開リポジトリにあります。読み書きするための鍵をここに入れます。鍵はこの端末の中だけに保存されます。</p>
+      <div class="form">
+        <label for="tok">トークン</label>
+        <input type="password" id="tok" autocomplete="off" spellcheck="false" placeholder="github_pat_…" value="${c.token ? "••••••••" : ""}">
+        <label for="repo">リポジトリ</label>
+        <input type="text" id="repo" autocomplete="off" spellcheck="false" value="${esc(c.repo)}">
+        <div class="row">
+          <button type="button" class="btn primary" id="save">保存して接続</button>
+          <button type="button" class="btn" id="forget">鍵を消す</button>
+        </div>
+        <p class="state" id="set-state" aria-live="polite">${c.token ? "鍵は保存済みです" : "まだ鍵が入っていません"}</p>
+      </div>
+      <h2>鍵の作り方（一度だけ）</h2>
+      <ol class="steps">
+        <li>GitHub の Settings → Developer settings → Personal access tokens → <b>Fine-grained tokens</b> → Generate new token</li>
+        <li>Repository access：<b>Only select repositories</b> で <code>booth-factory</code> だけを選ぶ</li>
+        <li>Permissions → Repository permissions → <b>Contents：Read and write</b></li>
+        <li>有効期限は好きな長さで（切れたらまた作って入れ直す）</li>
+        <li>できたトークンをコピーして、上に貼って「保存して接続」</li>
+      </ol>
+      <p class="muted" style="font-size:12px">ホーム画面に追加したアプリと、ブラウザで開いたページは保存場所が別なので、それぞれで一度入れてください。</p>`;
+    el.querySelector("#tok").addEventListener("focus", e => { if (e.target.value.startsWith("•")) e.target.value = ""; });
+    el.querySelector("#save").addEventListener("click", async () => {
+      const t = el.querySelector("#tok").value.trim(), r = el.querySelector("#repo").value.trim() || DEFAULT_REPO;
+      if (t && !t.startsWith("•")) store.set("gh_token", t);
+      store.set("gh_repo", r);
+      const st = el.querySelector("#set-state");
+      st.textContent = "接続を確かめています…";
+      try { await api("data.json", { raw: true }); st.textContent = "つながりました"; imgCache.clear(); await refresh(); }
+      catch (e) { st.textContent = errText(e); }
+    });
+    el.querySelector("#forget").addEventListener("click", () => { store.del("gh_token"); renderSettings(); });
+  }
+
+  const noData = () => loadErr ? `<p class="banner err">${esc(loadErr)}</p>` : '<p class="muted">読み込み中…</p>';
+
+  // ---------------------------------------------------------------- 返事（inbox/<Item>.json）
+  const MAX_PHOTOS = 4;
+  const pending = new Map();   // item -> [{blob, url}]（送る前の写真）
+
+  async function toJpeg(file) {   // スマホ写真（HEIC含む）を長辺2000pxのJPEGに。変換できなければそのまま
+    try {
+      const bmp = await createImageBitmap(file);
+      const s = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+      c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+      return (await new Promise(r => c.toBlob(r, "image/jpeg", 0.85))) || file;
+    } catch (e) { return file; }
+  }
+
+  function thumb(src, onRemove) {
+    const li = document.createElement("li");
+    li.innerHTML = `<img alt="添付写真">`;
+    li.querySelector("img").src = src;
+    if (onRemove) {
+      const rm = document.createElement("button");
+      rm.type = "button"; rm.className = "rm"; rm.textContent = "×"; rm.setAttribute("aria-label", "この写真を外す");
+      rm.addEventListener("click", onRemove); li.append(rm);
+    }
+    return li;
+  }
+
+  function showState(b) {
+    const d = inbox[b.dataset.item];
+    const btns = b.querySelector(".btns"), fix = b.querySelector(".fixbox"), sent = b.querySelector(".sent");
+    if (d) {
+      btns.hidden = true; fix.hidden = true; sent.hidden = false;
+      const n = (d.photos || []).length;
+      sent.querySelector("p").textContent = "送信済み：" + (LABEL[d.action] || d.action) + (d.note ? "「" + d.note + "」" : "") + (n ? `（写真${n}枚）` : "") + " → 次の5:00に反映";
+    } else { btns.hidden = false; sent.hidden = true; }
+  }
+
+  function wireDecide(root) {
+    root.querySelectorAll(".decide").forEach(b => {
+      const item = b.dataset.item, mode = MODES[b.dataset.mode];
+      const setState = t => { b.querySelector(".state").textContent = t; };
+      const enable = on => b.querySelectorAll("button").forEach(x => { x.disabled = !on; });
+      if (!pending.has(item)) pending.set(item, []);
+      const ul = b.querySelector(".fixbox .thumbs"), input = b.querySelector('input[type="file"]');
+      const draw = () => ul.replaceChildren(...pending.get(item).map(p => thumb(p.url, () => {
+        URL.revokeObjectURL(p.url); pending.set(item, pending.get(item).filter(x => x !== p)); draw();
+      })));
+      draw();
+      showState(b);
+
+      b.querySelectorAll(".btns button").forEach(btn => btn.addEventListener("click", () => {
+        const act = btn.dataset.act;
+        if (mode.note[act]) {
+          b.dataset.pending = act;
+          const f = b.querySelector(".fixbox");
+          f.querySelector("label").textContent = mode.note[act][0];
+          f.querySelector("textarea").placeholder = mode.note[act][1];
+          f.hidden = !f.hidden; if (!f.hidden) f.querySelector("textarea").focus();
+          return;
+        }
+        send(act, "");
+      }));
+      b.querySelector(".add-photo").addEventListener("click", () => input.click());
+      input.addEventListener("change", async () => {
+        const files = [...input.files].slice(0, MAX_PHOTOS - pending.get(item).length);
+        input.value = "";
+        for (const f of files) { const blob = await toJpeg(f); pending.get(item).push({ blob, url: URL.createObjectURL(blob) }); }
+        draw();
+        setState(pending.get(item).length >= MAX_PHOTOS ? "写真は4枚までです" : "");
+      });
+      b.querySelector(".send").addEventListener("click", () => {
+        const act = b.dataset.pending, note = b.querySelector("textarea").value.trim();
+        if (NOTE_REQUIRED.includes(act) && !note) { setState("直してほしいことを一言書いてください"); b.querySelector("textarea").focus(); return; }
+        send(act, note);
+      });
+      b.querySelector(".undo").addEventListener("click", async () => {
+        const d = inbox[item];
+        if (!d) return;
+        enable(false); setState("取り消し中…");
+        try {
+          await api(`inbox/${item}.json`, { method: "DELETE", body: { message: `取り消し ${item}`, sha: d._sha } });
+          for (const p of d.photos || []) {
+            try { const r = await (await api(p)).json(); await api(p, { method: "DELETE", body: { message: `写真の取り消し ${item}`, sha: r.sha } }); } catch (e) {}
+          }
+          delete inbox[item]; setState(""); showState(b); renderLog();
+        } catch (e) { setState(errText(e)); } finally { enable(true); }
+      });
+
+      async function send(action, note) {
+        enable(false); setState("送信中…");
+        try {
+          const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15);
+          const photos = [];
+          if (mode.note[action]) {
+            let i = 0;
+            for (const p of pending.get(item)) {
+              i++; setState(`写真を送信中…（${i}/${pending.get(item).length}）`);
+              const path = `inbox/photos/${item}_${stamp}_${i}.jpg`;
+              await api(path, { method: "PUT", body: { message: `写真 ${item}`, content: await blobB64(p.blob) } });
+              photos.push(path);
+            }
+          }
+          const doc = { item, action, note, photos, at: new Date().toISOString() };
+          const body = { message: `${LABEL[action]} ${item}`, content: b64utf8(JSON.stringify(doc, null, 1)) };
+          if (inbox[item]) body.sha = inbox[item]._sha;
+          const r = await (await api(`inbox/${item}.json`, { method: "PUT", body })).json();
+          inbox[item] = { ...doc, _sha: r.content.sha };
+          pending.get(item).forEach(p => URL.revokeObjectURL(p.url)); pending.set(item, []);
+          draw(); b.querySelector("textarea").value = "";
+          setState(""); showState(b); renderLog();
+        } catch (e) { setState(errText(e)); }
+        finally { enable(true); }
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------- 読み込み
+  async function loadInbox() {
+    inbox = {};
+    let files = [];
+    try { files = await (await api("inbox")).json(); } catch (e) { if (e.status !== 404) throw e; }
+    await Promise.all(files.filter(f => f.type === "file" && f.name.endsWith(".json")).map(async f => {
+      try { const d = await (await api(f.path, { raw: true })).json(); inbox[d.item || f.name.slice(0, -5)] = { ...d, _sha: f.sha }; } catch (e) {}
+    }));
+  }
+
+  function renderAll() {
+    document.getElementById("title").textContent = data ? `${data.theme} 工場` : "BOOTH工場";
+    document.getElementById("when").textContent = data ? `更新 ${fmt(data.updated)} ・ 次のライン ${fmt(data.next_run).split(" ")[0]} 5:00` : "";
+    renderReview(); renderLine(); renderLog();
+  }
+
+  async function refresh() {
+    const btn = document.getElementById("reload");
+    btn.classList.add("spin"); btn.disabled = true;
+    loadErr = null;
+    try {
+      const [d] = await Promise.all([api("data.json", { raw: true }).then(r => r.json()), loadInbox()]);
+      data = d;
+      try { localStorage.setItem("last_data", JSON.stringify(d)); } catch (e) {}
+    } catch (e) {
+      loadErr = errText(e);
+      if (!data) { try { data = JSON.parse(localStorage.getItem("last_data") || "null"); } catch (x) {} }
+      if (data) loadErr = null;
+      if (e.message === "no_token") switchTab("settings");
+    } finally { btn.classList.remove("spin"); btn.disabled = false; }
+    renderAll();
+  }
+
+  // ---------------------------------------------------------------- タブ
+  function switchTab(name) {
+    document.querySelectorAll(".tab").forEach(t => { if (t.dataset.tab === name) t.setAttribute("aria-current", "page"); else t.removeAttribute("aria-current"); });
+    document.querySelectorAll("main").forEach(m => { m.hidden = m.dataset.view !== name; });
+    if (name === "settings") renderSettings();
+    window.scrollTo(0, 0);
+    try { sessionStorage.setItem("tab", name); } catch (e) {}
+  }
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => switchTab(t.dataset.tab)));
+  document.getElementById("reload").addEventListener("click", refresh);
+
+  let startTab = "review";
+  try { startTab = sessionStorage.getItem("tab") || "review"; } catch (e) {}
+  switchTab(startTab);
+  if (cfg().token) refresh(); else { loadErr = "設定タブで鍵（トークン）を入れてください"; renderAll(); switchTab("settings"); }
+})();
+</script>
+</body>
+</html>
