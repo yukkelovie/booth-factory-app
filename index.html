@@ -267,14 +267,19 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       },
       body: body ? JSON.stringify(body) : undefined,
     });
-    if (!r.ok) throw new ApiError(r.status, `${r.status}`);
+    if (!r.ok) {
+      const limited = r.status === 429 || (r.status === 403 && r.headers.get("x-ratelimit-remaining") === "0");
+      throw new ApiError(limited ? 429 : r.status === 403 && method !== "GET" ? 4031 : r.status, `${r.status}`);
+    }
     return r;
   }
   const b64utf8 = s => { const u = new TextEncoder().encode(s); let b = ""; for (const c of u) b += String.fromCharCode(c); return btoa(b); };
   const blobB64 = blob => new Promise((ok, ng) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(",")[1]); fr.onerror = ng; fr.readAsDataURL(blob); });
   const errText = e => e.message === "no_token" ? "設定タブで鍵（トークン）を入れてください"
     : e.status === 401 ? "鍵（トークン）が無効です。設定タブで入れ直してください"
-    : e.status === 403 ? "鍵に権限がないか、回数制限です。少し待ってください"
+    : e.status === 4031 ? "鍵に書き込みの権限がありません。GitHub でこの鍵を Edit して、Contents を「Read and write」にしてください"
+    : e.status === 403 ? "鍵に booth-factory を読む権限がありません。鍵の Repository access を確認してください"
+    : e.status === 429 ? "GitHub の回数制限です。少し待ってからもう一度押してください"
     : e.status === 404 ? "リポジトリが見つかりません（鍵の対象リポジトリを確認）"
     : e.status === 409 || e.status === 422 ? "他の送信とぶつかりました。もう一度押してください"
     : "通信できませんでした（" + (e.status || "オフライン") + "）";
@@ -619,6 +624,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <dt>最新の状態にしたい</dt><dd>右上の ↻ を押してください。工場の状況は、毎朝のラインの後に更新されます。</dd>
           <dt>「鍵が無効です」と出る</dt><dd>トークンの期限切れか、消してしまった可能性があります。GitHub で作り直して、設定タブで貼り直してください。</dd>
           <dt>PC でも見たい</dt><dd>同じ URL を開いて、PC 用のトークンを設定タブに貼れば見られます。データは共通です。</dd>
+          <dt>「書き込みの権限がありません」と出る</dt><dd>鍵が「読むだけ」で作られています。GitHub の Fine-grained tokens でその鍵を開いて Edit → Contents を Read and write にして Update。鍵の貼り直しはいりません。</dd>
           <dt>スマホを無くした</dt><dd>GitHub の Settings → Developer settings → Fine-grained tokens で、スマホ用のトークンを Delete してください。</dd>
           <dt>アイデアを足したい・順番を変えたい</dt><dd>00_ideas\\ideas.md を直接書き換えるか、Claude のチャットで頼んでください。</dd>
         </dl>
