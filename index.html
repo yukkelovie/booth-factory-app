@@ -608,7 +608,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><b>マテリアル</b>：部品の色分けの数。工程Cで ColorID（Substance の ID マップ用）になるだけで、最終的なマテリアル数ではない。多くても問題なし。最終的には工程Cで 1〜2 個＋ガラス・光るものなどに分ける</li>
           <li><b>見てほしい点</b>：工程Bが「ここは判断してほしい」と書いたこと。返事の参考に</li>
           <li><b>工程Bで直したこと</b>：検品で自動で直したこと</li>
-          <li><b>3Dで回して見る</b>：押すと全画面で3Dが開く。1本指で回転、ピンチでズーム、2本指で移動。「ワイヤー」でポリゴンの線、「視点を戻す」で最初の向きに。閉じるはスマホの「戻る」でもOK。4面図では見えない裏側や隙間の確認に。工程C確認待ちのカードでは、自分で整えた .blend の形が出る（工程Cの仮の結果ではない）。ボツのものには出ない</li>
+          <li><b>3Dで回して見る</b>：押すと全画面で3Dが開く。1本指で回転、ピンチでズーム、2本指で移動。「ワイヤー」は押すたびに なし → 三角 → 四角 と切り替わる（三角＝GPU・Unityが実際に描く三角形、四角＝Blender で見えるのと同じ辺）。「視点を戻す」で最初の向きに。閉じるはスマホの「戻る」でもOK。4面図では見えない裏側や隙間の確認に。工程C確認待ちのカードでは、自分で整えた .blend の形が出る（工程Cの仮の結果ではない）。ボツのものには出ない</li>
           <li><b>UV</b>（たためる）：<b>展開図</b>（UVの切り開き方）と<b>チェッカー</b>（市松模様を貼った絵。ゆがんでいなければ OK）。工程Cの後は、テクスチャセットごとの展開図が見られる（工程C確認待ちのカード・テクスチャ待ちの一覧）。Print で始まるセットは写真・ラベル用で、上向きのまま並ぶ</li>
         </ul>
       </section>
@@ -980,6 +980,26 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     import("three/addons/loaders/GLTFLoader.js"), import("three/addons/loaders/DRACOLoader.js"),
   ]).catch(e => { threeMods = null; throw e; }));
 
+  // 四角の線（<Item>.glb.edges.bin、形式は工場の lib/export_glb.py に書いてある）→ LineSegments 用のジオメトリ
+  async function loadEdges(THREE, path) {
+    const blob = await (await fetch(await blobUrl(path))).blob();
+    const ab = await new Response(blob.stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer();
+    const dv = new DataView(ab);
+    if (dv.getUint32(0) !== 0x45444731) throw new Error("edges: 形式が違う");   // "EDG1"
+    const nv = dv.getUint32(4, true), ne = dv.getUint32(8, true);
+    const lo = [0, 1, 2].map(i => dv.getFloat32(12 + i * 4, true)), span = [0, 1, 2].map(i => dv.getFloat32(24 + i * 4, true));
+    const q = new Uint16Array(ab.slice(36, 36 + nv * 6));
+    const d = nv < 65536 ? new Uint16Array(ab.slice(36 + nv * 6, 36 + nv * 6 + ne * 4)) : new Uint32Array(ab.slice(36 + nv * 6, 36 + nv * 6 + ne * 8));
+    const pos = new Float32Array(nv * 3);
+    for (let i = 0; i < pos.length; i++) pos[i] = lo[i % 3] + q[i] / 65535 * span[i % 3];
+    const idx = new Uint32Array(ne * 2);
+    for (let e = 0, a = 0; e < ne; e++) { a += d[e * 2]; idx[e * 2] = a; idx[e * 2 + 1] = a + d[e * 2 + 1]; }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    g.setIndex(new THREE.BufferAttribute(idx, 1));
+    return g;
+  }
+
   async function open3d(it) {
     if (v3d) close3d();
     const el = document.createElement("div");
@@ -1011,7 +1031,10 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       model.traverse(o => {
         if (!o.isMesh) return;
         tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3;
-        [].concat(o.material).forEach(m => { if (m.transparent) m.depthWrite = false; });   // ガラスの後ろが消えないように
+        [].concat(o.material).forEach(m => {
+          if (m.transparent) m.depthWrite = false;   // ガラスの後ろが消えないように
+          m.polygonOffset = true; m.polygonOffsetFactor = 1; m.polygonOffsetUnits = 1;   // ワイヤーの線が面に埋もれないように
+        });
       });
       scene.add(model);
       const box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
@@ -1048,14 +1071,38 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       msg.hidden = true;
       el.querySelector(".v3d-foot small").textContent = `${Math.round(tris).toLocaleString()} tris（ベベル込み）`;
       el.querySelector(".v3d-reset").addEventListener("click", home);
-      el.querySelector(".v3d-wire").addEventListener("click", e => {
-        const on = e.currentTarget.getAttribute("aria-pressed") !== "true";
-        e.currentTarget.setAttribute("aria-pressed", String(on));
-        model.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(m => { m.wireframe = on; }); });
+      // ワイヤー：なし → 三角（GPUが描く三角形）→ 四角（Blender の辺）→ なし。線は面の上に重ねる。押したときに初めて作る
+      const lineMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.45 });
+      const wires = {}, WIRE_NEXT = { off: "tri", tri: "quad", quad: "off" }, WIRE_TEXT = { off: "なし", tri: "三角", quad: "四角" };
+      let wireMode = "off";
+      const makeTri = () => {
+        const g = new THREE.Group();
+        model.traverse(o => { if (o.isMesh) { const l = new THREE.LineSegments(new THREE.WireframeGeometry(o.geometry), lineMat); o.updateWorldMatrix(true, false); l.applyMatrix4(o.matrixWorld); g.add(l); } });
+        return g;
+      };
+      const wireBtn = el.querySelector(".v3d-wire");
+      wireBtn.textContent = "ワイヤー：なし";
+      wireBtn.addEventListener("click", async () => {
+        const next = WIRE_NEXT[wireMode];
+        wireBtn.disabled = true;
+        try {
+          if (next !== "off" && !wires[next]) wires[next] = next === "tri" ? makeTri() : new THREE.LineSegments(await loadEdges(THREE, it.glb + ".edges.bin"), lineMat);
+          wireMode = next;
+        } catch (e) {   // 四角が読めない（古いデータ・古い端末）ときは、なしに戻す
+          wireMode = "off";
+          el.querySelector(".v3d-foot small").textContent = "四角の線は読めませんでした";
+        }
+        if (!st.alive) return;
+        Object.entries(wires).forEach(([k, w]) => { if (k === wireMode) scene.add(w); else scene.remove(w); });
+        wireBtn.disabled = false;
+        wireBtn.textContent = "ワイヤー：" + WIRE_TEXT[wireMode];
+        wireBtn.setAttribute("aria-pressed", String(wireMode !== "off"));
       });
       st.cleanup.push(() => {
         ro.disconnect(); controls.dispose();
         model.traverse(o => { if (o.isMesh) { o.geometry.dispose(); [].concat(o.material).forEach(m => m.dispose()); } });
+        Object.values(wires).forEach(w => w.traverse(o => { if (o.geometry) o.geometry.dispose(); }));
+        lineMat.dispose();
         grid.geometry.dispose(); grid.material.dispose();
         renderer.dispose(); renderer.forceContextLoss();
       });
