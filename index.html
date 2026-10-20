@@ -428,6 +428,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       ${it.img.sets ? `<h4>パーツ分け・テクスチャセット（色＝セット）</h4>${pic(it.img.sets, "テクスチャセット色分け")}` : ""}
       ${(p.objects || []).length ? `<h4>オブジェクト</h4><ul>${p.objects.map(o => `<li><code>${esc(o.name)}</code> ${o.tris.toLocaleString()} tris ・ ${esc(o.sets.join(" / "))}</li>`).join("")}</ul>` : ""}
       ${Object.keys(p.sets || {}).length ? `<h4>テクスチャセット</h4><ul>${Object.entries(p.sets).map(([s, os]) => `<li><b>${esc(s)}</b>：${esc(os.join("、"))}</li>`).join("")}</ul>` : ""}
+      ${it.img.bevel ? `<h4>ハイポリで丸める角（オレンジ）</h4>${pic(it.img.bevel, "ハイポリで丸める角")}<p class="legend">オレンジ＝丸める角（見やすいよう太めに描いてある）。灰色のままの部品は丸めない</p>` : ""}
+      ${(p.bevel || []).length ? `<details class="sub"><summary>部品ごとの丸め幅（${p.bevel.length} 行）</summary><ul>${p.bevel.map(x => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}
       ${uvSets(it)}
       ${list("確認してほしい点", p.look)}
       ${pathRow(it)}
@@ -577,7 +579,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           ${arrow("OKのもの")}
           ${step("🛠", "OK済み：Blender で整える", "PCの _factory\\_作業台 フォルダの「1【整える】」から .blend を開いて整え、「整えた」を押す", true)}
           ${arrow("朝7:00")}
-          ${step("⚙️", "工程C：仕上げ前処理", "見えない面の削除・パーツ分け・テクスチャセット・UV・FBX書き出しを仮でやる。写真やラベルを貼る大きい部品（商品見本・看板など）は専用のセット「Print」に分けて、UVを1枚まるごと使う")}
+          ${step("⚙️", "工程C：仕上げ前処理", "見えない面の削除・パーツ分け・テクスチャセット・UV・ハイポリ（角を丸めたベイク用）・FBX書き出しを仮でやる。写真やラベルを貼る大きい部品（商品見本・看板など）は専用のセット「Print」に分けて、UVを1枚まるごと使う")}
           ${arrow()}
           ${step("👀", "工程C確認待ち", "消す面（赤）とパーツ分けを見て OK（確定）／直して", true)}
           ${arrow("OK（確定）")}
@@ -637,7 +639,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <div class="decide demo-btns" aria-hidden="true" style="border-top:0;padding-top:0">
           <div class="btns one"><button type="button" class="act-prep" tabindex="-1">整えた → 工程Cへ</button></div>
         </div>
-        <p style="font-size:14px"><b>整えた</b>（OK済みのもの）：Blender で整え終わったら押す。メモ欄に「扉はギミックにしたい」「UVはそのまま」など工程Cへの指示を書けます（なくてもOK）。</p>
+        <p style="font-size:14px"><b>整えた</b>（OK済みのもの）：Blender で整え終わったら押す。メモ欄に「扉はギミックにしたい」「UVはそのまま」「ビスも丸めて」など工程Cへの指示を書けます（なくてもOK）。ローポリのベベルは、入れたい所だけ自分で入れて<b>適用してから</b>押す（モディファイアのままだと工程Cで外れる）。</p>
       </section>
 
       <section class="help-sec" id="h-now">
@@ -688,6 +690,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <dt>PC でも見たい</dt><dd>同じ URL を開いて、PC 用のトークンを設定タブに貼れば見られます。データは共通です。</dd>
           <dt>「書き込みの権限がありません」と出る</dt><dd>鍵が「読むだけ」で作られています。GitHub の Fine-grained tokens でその鍵を開いて Edit → Contents を Read and write にして Update。鍵の貼り直しはいりません。</dd>
           <dt>スマホを無くした</dt><dd>GitHub の Settings → Developer settings → Fine-grained tokens で、スマホ用のトークンを Delete してください。</dd>
+          <dt>ハイポリの角の丸め方を変えたい</dt><dd>工程Cは、部品ごとに30°以上曲がった角を、部品の一番薄い寸法の8%（1〜8mm）の幅で丸めます。一番薄い所が8mm未満の小物（ビス頭など）は丸めません。工程C確認待ちのカードの「ハイポリで丸める角」で、オレンジの所が丸まります。<br>変えたいときは2通り：①Blenderで整えるとき、丸めたい辺にだけ<b>ベベルウェイト</b>を付ける（編集モードで辺を選んで、サイドバー［N］の「アイテム」タブにあるベベルウェイト、または 辺メニュー →「辺のベベルウェイト」）。印を付けた部品は、印の辺だけ丸まる（1.0＝ふつうの幅、0.5＝半分）。②「整えた」や「直して」のメモに「ビスも丸めて」「扉は丸めないで」「全体に丸みを強く」などと書く。</dd>
           <dt>どのファイルを開けばいいかわからない</dt><dd>PCの <code>G:\\マイドライブ\\booth\\products\\_factory\\_作業台</code> を開いてください。あなたの出番のもの（1【整える】＝OK済み、2【C確認】＝工程Cの結果、3【塗る】＝テクスチャ待ち）の .blend へのショートカットが並んでいて、ダブルクリックで Blender が開きます。アプリが更新されるたびに作り直されるので、終わったものは自動で消えます。エクスプローラーのクイックアクセスにピン留めしておくと便利です。カードの一番下にもファイルの場所が出ていて、PCのブラウザなら「コピー」で Blender の「開く」やエクスプローラーのアドレス欄に貼れます。</dd>
           <dt>アイデアを足したい・順番を変えたい</dt><dd>00_ideas\\ideas.md を直接書き換えるか、Claude のチャットで頼んでください。</dd>
         </dl>
