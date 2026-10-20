@@ -351,10 +351,22 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       ${list("見てほしい点", it.look)}
       ${list("工程Bで直したこと", it.fixed)}
       ${mode ? decideUI(it, mode) : ""}
-      ${it.img.uv ? `<details class="sub"><summary>UVチェッカー</summary>${pic(it.img.uv, "UVチェッカー")}</details>` : ""}
+      ${it.img.uv || it.img.uv_layout ? `<details class="sub"><summary>UV（展開図・チェッカー）</summary>
+        ${it.img.uv_layout ? `<h4>展開図</h4>${pic(it.img.uv_layout, "UV展開図")}` : ""}
+        ${it.img.uv ? `<h4>チェッカー（市松模様がゆがんでいなければOK）</h4>${pic(it.img.uv, "UVチェッカー")}` : ""}
+      </details>` : ""}
       ${fb}
       <p class="meta">ビルド ${esc(it.built)}</p>
     </article>`;
+  }
+
+  // 工程Cのテクスチャセットごとの UV 展開図（Print で始まるセットは写真・ラベル用）
+  function uvSets(it) {
+    const s = Object.entries((it.img && it.img.uv_sets) || {}).filter(([, path]) => path);
+    if (!s.length) return "";
+    return `<details class="sub"><summary>UV展開図（テクスチャセットごと・${s.length}枚）</summary>
+      ${s.map(([name, path]) => `<h4>${esc(name)}${/^print/i.test(name) ? "（写真・ラベル用。上向きのまま）" : ""}</h4>${pic(path, name + " のUV展開図")}`).join("")}
+    </details>`;
   }
 
   function prepCard(it) {
@@ -371,6 +383,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       ${it.img.sets ? `<h4>パーツ分け・テクスチャセット（色＝セット）</h4>${pic(it.img.sets, "テクスチャセット色分け")}` : ""}
       ${(p.objects || []).length ? `<h4>オブジェクト</h4><ul>${p.objects.map(o => `<li><code>${esc(o.name)}</code> ${o.tris.toLocaleString()} tris ・ ${esc(o.sets.join(" / "))}</li>`).join("")}</ul>` : ""}
       ${Object.keys(p.sets || {}).length ? `<h4>テクスチャセット</h4><ul>${Object.entries(p.sets).map(([s, os]) => `<li><b>${esc(s)}</b>：${esc(os.join("、"))}</li>`).join("")}</ul>` : ""}
+      ${uvSets(it)}
       ${list("確認してほしい点", p.look)}
       ${decideUI(it, "prep_review")}
     </article>`;
@@ -382,7 +395,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       const meta = it.prep && it.stage === "60_texturing"
         ? `low ${(it.prep.low_tris || 0).toLocaleString()} ・ high ${(it.prep.high_tris || 0).toLocaleString()} tris ・ ${Object.keys(it.prep.sets || {}).length}セット`
         : `${d[0].toFixed(2)}×${d[1].toFixed(2)}×${d[2].toFixed(2)} m ・ ${it.tris.toLocaleString()} tris`;
-      return `<li>${pic(it.img.persp, it.id + " のパース")}<p class="s-name">${esc(short(it))}</p><p class="s-meta">${meta}</p>${mode ? decideUI(it, mode) : ""}</li>`;
+      return `<li>${pic(it.img.persp, it.id + " のパース")}<p class="s-name">${esc(short(it))}</p><p class="s-meta">${meta}</p>${mode ? decideUI(it, mode) : ""}${it.stage === "60_texturing" ? uvSets(it) : ""}</li>`;
     }).join("")}</ul>`;
   }
 
@@ -556,7 +569,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><b>マテリアル</b>：部品の色分けの数。工程Cで ColorID（Substance の ID マップ用）になるだけで、最終的なマテリアル数ではない。多くても問題なし。最終的には工程Cで 1〜2 個＋ガラス・光るものなどに分ける</li>
           <li><b>見てほしい点</b>：工程Bが「ここは判断してほしい」と書いたこと。返事の参考に</li>
           <li><b>工程Bで直したこと</b>：検品で自動で直したこと</li>
-          <li><b>UVチェッカー</b>（たためる）：UV の伸び・つぶれの確認用。市松模様がゆがんでいなければ OK</li>
+          <li><b>UV</b>（たためる）：<b>展開図</b>（UVの切り開き方）と<b>チェッカー</b>（市松模様を貼った絵。ゆがんでいなければ OK）。工程Cの後は、テクスチャセットごとの展開図が見られる（工程C確認待ちのカード・テクスチャ待ちの一覧）。Print で始まるセットは写真・ラベル用で、上向きのまま並ぶ</li>
         </ul>
       </section>
 
