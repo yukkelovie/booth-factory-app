@@ -86,7 +86,13 @@ code { font-family: var(--f-data); font-size: .88em; }
 
 /* ラインの状況 */
 .flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 6px; }
-.flow li { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 4px; text-align: center; display: grid; gap: 2px; }
+.flow li { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0; text-align: center; display: grid; }
+.flow-btn { border: 0; background: transparent; color: inherit; font: inherit; padding: 8px 4px; display: grid; gap: 2px; cursor: pointer; border-radius: 8px; min-height: 44px; }
+.flow-btn::after { content: "›"; font-size: 11px; color: var(--muted); line-height: 1; }
+.open-item { border: 0; background: transparent; color: inherit; font: inherit; padding: 0; text-align: left; display: grid; gap: 4px; cursor: pointer; width: 100%; }
+.card { scroll-margin-top: 90px; }
+.stage-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.stage-head h2 { margin: 0; flex: 1; min-width: 0; }
 .flow b { font-family: var(--f-data); font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .flow span { font-size: 11px; color: var(--muted); }
 .flow li.hot { background: var(--mark); border-color: var(--mark); }
@@ -212,6 +218,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 <main id="view-review" data-view="review"></main>
 <main id="view-line" data-view="line" hidden></main>
 <main id="view-log" data-view="log" hidden></main>
+<main id="view-stage" data-view="stage" hidden></main>
 <main id="view-help" data-view="help" hidden></main>
 <main id="view-settings" data-view="settings" hidden></main>
 
@@ -355,6 +362,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         ${it.img.uv_layout ? `<h4>展開図</h4>${pic(it.img.uv_layout, "UV展開図")}` : ""}
         ${it.img.uv ? `<h4>チェッカー（市松模様がゆがんでいなければOK）</h4>${pic(it.img.uv, "UVチェッカー")}` : ""}
       </details>` : ""}
+      ${it.prep ? uvSets(it) : ""}
       ${fb}
       <p class="meta">ビルド ${esc(it.built)}</p>
     </article>`;
@@ -395,7 +403,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       const meta = it.prep && it.stage === "60_texturing"
         ? `low ${(it.prep.low_tris || 0).toLocaleString()} ・ high ${(it.prep.high_tris || 0).toLocaleString()} tris ・ ${Object.keys(it.prep.sets || {}).length}セット`
         : `${d[0].toFixed(2)}×${d[1].toFixed(2)}×${d[2].toFixed(2)} m ・ ${it.tris.toLocaleString()} tris`;
-      return `<li>${pic(it.img.persp, it.id + " のパース")}<p class="s-name">${esc(short(it))}</p><p class="s-meta">${meta}</p>${mode ? decideUI(it, mode) : ""}${it.stage === "60_texturing" ? uvSets(it) : ""}</li>`;
+      return `<li><button type="button" class="open-item" data-open-stage="${esc(it.stage)}" data-open-item="${esc(it.id)}" aria-label="${esc(short(it))} の詳細を見る">${pic(it.img.persp, it.id + " のパース")}<p class="s-name">${esc(short(it))} ›</p><p class="s-meta">${meta}</p></button>${mode ? decideUI(it, mode) : ""}</li>`;
     }).join("")}</ul>`;
   }
 
@@ -423,12 +431,12 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   function renderLine() {
     const el = document.getElementById("view-line");
     if (!data) { el.innerHTML = noData(); return; }
-    const counts = [[data.todo.length, "待ち行列"], ...data.stages.map(s => [byStage(s.id).length, s.label])];
+    const counts = [[data.todo.length, "待ち行列", "todo"], ...data.stages.map(s => [byStage(s.id).length, s.label, s.id])];
     const sections = [["30_feedback", "直し待ち", "翌朝7:00の工程Aが作り直します"], ["10_blockout", "工程A済み", "工程Bの検品待ち"],
       ["50_prep", "工程C待ち", "翌朝7:00の工程Cで、見えない面の削除・パーツ分け・UV・FBX書き出しを仮でやります"],
       ["60_texturing", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ"], ["99_rejected", "ボツ", ""]];
     el.innerHTML = runPanel() + `
-      <ol class="flow" aria-label="ラインの状況">${counts.map(([n, l]) => `<li class="${l === "確認待ち" && n ? "hot" : ""}"><b>${n}</b><span>${l}</span></li>`).join("")}</ol>
+      <ol class="flow" aria-label="ラインの状況（押すと一覧へ）">${counts.map(([n, l, id]) => `<li class="${l === "確認待ち" && n ? "hot" : ""}"><button type="button" class="flow-btn" data-open-stage="${id}" aria-label="${l} ${n}件の一覧"><b>${n}</b><span>${l}</span></button></li>`).join("")}</ol>
       ${sections.map(([s, l, h]) => { const its = byStage(s); return its.length ? `<h2>${l} <small>${its.length} 点</small></h2>${h ? `<p class="muted hint">${h}</p>` : ""}${s === "30_feedback" ? its.map(it => card(it)).join("") : shelf(its)}` : ""; }).join("")}
       <h2>次に作るもの <small>${data.todo.length} 件</small></h2>
       <ul class="queue">${data.todo.slice(0, 8).map(t => `<li><span>${esc(t.name)}</span><code>${esc(t.code)}</code></li>`).join("") || "<li><span>待ち行列は空です</span></li>"}</ul>
@@ -627,6 +635,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <tr><th>ボツ</th><td>作らないことにしたもの</td></tr>
         </table>
         <p class="muted" style="font-size:13px">太字があなたの出番。確認タブの赤い数字は、確認待ち＋C確認待ちの件数です。</p>
+        <p style="font-size:14px">ラインタブの<b>数字のマスを押すと</b>、その段に溜まっているものの一覧が開きます。どれも確認待ちと同じ大きいカード（4面図・ポリ数・直した履歴・UV）で見られて、その段でできる操作（OK・整えた など）もそこで押せます。小さいサムネ（OK済みなど）を押しても、そのアイテムのカードに飛びます。「← 戻る」で元の画面へ。</p>
       </section>
 
       <section class="help-sec" id="h-faq">
@@ -878,11 +887,63 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     }));
   }
 
+  // ---------------------------------------------------------------- 工程ごとの一覧（ラインの数字・サムネから開く）
+  const STAGE_INFO = {
+    todo: { label: "待ち行列", hint: "まだ作っていないアイデア。上から順に作ります" },
+    "10_blockout": { label: "工程A済み", hint: "形ができて、工程Bの検品待ち" },
+    "20_ready": { label: "確認待ち", hint: "4面図を見て OK／直して／ボツ", mode: "review" },
+    "30_feedback": { label: "直し待ち", hint: "次のライン（または「今すぐ直す」）で作り直します" },
+    "40_approved": { label: "OK済み", hint: "Blenderで整えたら「整えた」を押すと、工程Cが仕上げ前処理をします", mode: "prep" },
+    "50_prep": { label: "工程C待ち", hint: "次のライン（または「今すぐ」）で工程Cが仕上げ前処理をします" },
+    "55_prep_review": { label: "工程C確認待ち", hint: "消す面とパーツ分けを確認して OK（確定）／直して" },
+    "60_texturing": { label: "テクスチャ待ち", hint: "_prep フォルダの FBX を Substance Painter へ" },
+    "99_rejected": { label: "ボツ", hint: "作らないことにしたもの" },
+  };
+  let curStage = null, prevTab = "line";
+
+  function openStage(stage, item) {
+    const shown = [...document.querySelectorAll("main")].find(m => !m.hidden);
+    if (shown && shown.dataset.view !== "stage") prevTab = shown.dataset.view;
+    curStage = stage;
+    switchTab("stage");
+    renderStage();
+    if (item) {
+      const t = document.querySelector(`#view-stage #item-${CSS.escape(item)}`);
+      if (t) t.scrollIntoView();
+    }
+  }
+
+  function renderStage() {
+    const el = document.getElementById("view-stage");
+    const info = STAGE_INFO[curStage];
+    if (!info) { el.innerHTML = ""; return; }
+    const head = n => `<div class="stage-head"><button type="button" class="btn back">← 戻る</button><h2>${info.label} <small>${n} ${curStage === "todo" ? "件" : "点"}</small></h2></div>
+      <p class="muted hint" style="margin-top:0">${esc(info.hint)}</p>`;
+    if (!data) { el.innerHTML = noData(); return; }
+    if (curStage === "todo") {
+      el.innerHTML = head(data.todo.length) +
+        `<ul class="queue">${data.todo.map(t => `<li><span>${esc(t.name)}</span><code>${esc(t.code)}</code></li>`).join("") || "<li><span>待ち行列は空です</span></li>"}</ul>`;
+    } else {
+      const its = byStage(curStage);
+      el.innerHTML = head(its.length) +
+        (its.map(it => curStage === "55_prep_review" ? prepCard(it) : card(it, info.mode)).join("") || '<p class="muted">ここには何もありません。</p>');
+      wireDecide(el);
+      hydrateImgs(el);
+    }
+    el.querySelector(".back").addEventListener("click", () => switchTab(prevTab || "line"));
+  }
+
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-open-stage]");
+    if (b) openStage(b.dataset.openStage, b.dataset.openItem);
+  });
+
   function renderAll() {
     document.getElementById("title").textContent = "3Dアセット工場";
     document.getElementById("when").textContent = data ? `テーマ ${data.theme} ・ 更新 ${fmt(data.updated)} ・ 次 ${fmt(data.next_run)}` : "";
     renderReview(); renderLine(); renderLog();
     if (!document.getElementById("view-help").hidden) renderHelp();
+    if (!document.getElementById("view-stage").hidden) renderStage();
   }
 
   async function refresh() {
@@ -922,6 +983,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   let startTab = "review";
   try { startTab = sessionStorage.getItem("tab") || "review"; } catch (e) {}
+  if (startTab === "stage") startTab = "line";   // 一覧ページは開き直したらラインに戻す
   switchTab(startTab);
   if (cfg().token) refresh(); else { loadErr = "設定タブで鍵（トークン）を入れてください"; renderAll(); switchTab("settings"); }
 })();
