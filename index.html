@@ -878,6 +878,11 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     loadErr = null;
     try {
       const [d] = await Promise.all([api("data.json", { raw: true }).then(r => r.json()), loadInbox(), loadRequests()]);
+      // 画像はファイル名が同じまま中身が変わるので、工場の状況が更新されたら覚えている画像を捨てて取り直す
+      if (!data || d.updated !== data.updated) {
+        imgCache.forEach(p => p.then(u => URL.revokeObjectURL(u)).catch(() => {}));
+        imgCache.clear();
+      }
       data = d;
       try { localStorage.setItem("last_data", JSON.stringify(d)); } catch (e) {}
     } catch (e) {
