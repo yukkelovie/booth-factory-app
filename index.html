@@ -13,6 +13,11 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=IBM+Plex+Mono:wght@500&display=swap">
+<!-- 3Dビューア用。three.js は「3Dで回して見る」を押したときに初めて読み込む -->
+<script type="importmap">{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }</script>
 <style>
 /* レイアウト：上にヘッダー、下にタブバー（確認／ライン／ログ／設定）。中身は1カラムの縦スクロール */
 :root {
@@ -112,6 +117,22 @@ code { font-family: var(--f-data); font-size: .88em; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { font-family: var(--f-data); font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; }
 .chip.ok { color: var(--ok); } .chip.warn { color: var(--warn); font-weight: 700; } .chip.plain { color: var(--muted); }
+.btn.v3d-open { width: 100%; min-height: 44px; }
+/* 3Dビューア：全画面。上に名前と閉じる、真ん中にキャンバス、下に操作 */
+.v3d { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: flex; flex-direction: column; }
+.v3d-head { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line);
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); }
+.v3d-head h3 { margin: 0; font-size: 16px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v3d-stage { flex: 1; position: relative; min-height: 0; touch-action: none; }
+.v3d-stage canvas { display: block; width: 100%; height: 100%; }
+.v3d-msg { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; text-align: center;
+  font-size: 14px; color: var(--muted); pointer-events: none; }
+.v3d-hint { position: absolute; left: 0; right: 0; top: 8px; margin: 0; text-align: center; font-size: 12px; color: var(--muted); pointer-events: none; }
+.v3d-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border-top: 1px solid var(--line);
+  padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 8px) max(16px, env(safe-area-inset-left, 0px)); }
+.v3d-foot .btn { padding: 8px 14px; min-height: 40px; }
+.v3d-foot .btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.v3d-foot small { flex: 1; min-width: 0; font-size: 12px; color: var(--muted); }
 details.sub { border-top: 1px solid var(--line); padding-top: 8px; }
 details.sub summary { cursor: pointer; font-size: 13px; color: var(--muted); min-height: 32px; }
 details.sub .pic { margin-top: 8px; }
@@ -291,15 +312,21 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     : e.status === 409 || e.status === 422 ? "他の送信とぶつかりました。もう一度押してください"
     : "通信できませんでした（" + (e.status || "オフライン") + "）";
 
-  // 画像は非公開なので、鍵付きで取ってきて blob URL にする
+  // 画像・3Dは非公開なので、鍵付きで取ってきて blob URL にする
   const imgCache = new Map();
+  function blobUrl(path) {
+    if (!imgCache.has(path)) {
+      const p = api(path, { raw: true }).then(r => r.blob()).then(b => URL.createObjectURL(b));
+      p.catch(() => imgCache.delete(path));
+      imgCache.set(path, p);
+    }
+    return imgCache.get(path);
+  }
   function loadImg(el) {
     const path = el.dataset.src;
     if (!path) return;
-    if (imgCache.has(path)) { imgCache.get(path).then(u => { el.src = u; el.classList.remove("loading"); }); return; }
-    const p = api(path, { raw: true }).then(r => r.blob()).then(b => URL.createObjectURL(b));
-    imgCache.set(path, p);
-    p.then(u => { el.src = u; el.classList.remove("loading"); }).catch(() => { imgCache.delete(path); el.classList.remove("loading"); el.alt = "画像を読めませんでした"; });
+    blobUrl(path).then(u => { el.src = u; el.classList.remove("loading"); })
+      .catch(() => { el.classList.remove("loading"); el.alt = "画像を読めませんでした"; });
   }
   const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting) { io.unobserve(e.target); loadImg(e.target); }
@@ -355,6 +382,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <span class="chip ${it.floating ? "warn" : "ok"}">${it.floating ? "浮き " + it.floating : "浮きなし"}</span>
         <span class="chip plain">マテリアル ${esc(it.materials ?? "—")}</span>
       </div>
+      ${v3dBtn(it)}
       ${list("見てほしい点", it.look)}
       ${list("工程Bで直したこと", it.fixed)}
       ${mode ? decideUI(it, mode) : ""}
@@ -367,6 +395,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       <p class="meta">ビルド ${esc(it.built)}</p>
     </article>`;
   }
+
+  const v3dBtn = (it, sub = "") => it.glb ? `<button type="button" class="btn v3d-open" data-v3d="${esc(it.id)}">3Dで回して見る${sub}</button>` : "";
 
   // 工程Cのテクスチャセットごとの UV 展開図（Print で始まるセットは写真・ラベル用）
   function uvSets(it) {
@@ -388,6 +418,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <span class="chip plain">high ${(p.high_tris || 0).toLocaleString()} tris</span>
         <span class="chip plain">ギミック ${esc((p.gimmicks || []).join("、") || "なし")}</span>
       </div>
+      ${v3dBtn(it, "（整えた .blend）")}
       ${it.img.sets ? `<h4>パーツ分け・テクスチャセット（色＝セット）</h4>${pic(it.img.sets, "テクスチャセット色分け")}` : ""}
       ${(p.objects || []).length ? `<h4>オブジェクト</h4><ul>${p.objects.map(o => `<li><code>${esc(o.name)}</code> ${o.tris.toLocaleString()} tris ・ ${esc(o.sets.join(" / "))}</li>`).join("")}</ul>` : ""}
       ${Object.keys(p.sets || {}).length ? `<h4>テクスチャセット</h4><ul>${Object.entries(p.sets).map(([s, os]) => `<li><b>${esc(s)}</b>：${esc(os.join("、"))}</li>`).join("")}</ul>` : ""}
@@ -577,6 +608,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><b>マテリアル</b>：部品の色分けの数。工程Cで ColorID（Substance の ID マップ用）になるだけで、最終的なマテリアル数ではない。多くても問題なし。最終的には工程Cで 1〜2 個＋ガラス・光るものなどに分ける</li>
           <li><b>見てほしい点</b>：工程Bが「ここは判断してほしい」と書いたこと。返事の参考に</li>
           <li><b>工程Bで直したこと</b>：検品で自動で直したこと</li>
+          <li><b>3Dで回して見る</b>：押すと全画面で3Dが開く。1本指で回転、ピンチでズーム、2本指で移動。「ワイヤー」でポリゴンの線、「視点を戻す」で最初の向きに。閉じるはスマホの「戻る」でもOK。4面図では見えない裏側や隙間の確認に。工程C確認待ちのカードでは、自分で整えた .blend の形が出る（工程Cの仮の結果ではない）。ボツのものには出ない</li>
           <li><b>UV</b>（たためる）：<b>展開図</b>（UVの切り開き方）と<b>チェッカー</b>（市松模様を貼った絵。ゆがんでいなければ OK）。工程Cの後は、テクスチャセットごとの展開図が見られる（工程C確認待ちのカード・テクスチャ待ちの一覧）。Print で始まるセットは写真・ラベル用で、上向きのまま並ぶ</li>
         </ul>
       </section>
@@ -936,7 +968,112 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   document.addEventListener("click", e => {
     const b = e.target.closest("[data-open-stage]");
     if (b) openStage(b.dataset.openStage, b.dataset.openItem);
+    const v = e.target.closest("[data-v3d]");
+    if (v && data) { const it = data.items.find(i => i.id === v.dataset.v3d); if (it && it.glb) open3d(it); }
   });
+
+  // ---------------------------------------------------------------- 3Dビューア（glb/<Item>.glb、Draco圧縮）
+  // 1本指で回転・ピンチでズーム・2本指で移動。光はカメラに付けて、どこから見ても形が読めるようにする
+  let threeMods = null, v3d = null;
+  const loadThree = () => threeMods || (threeMods = Promise.all([
+    import("three"), import("three/addons/controls/OrbitControls.js"),
+    import("three/addons/loaders/GLTFLoader.js"), import("three/addons/loaders/DRACOLoader.js"),
+  ]).catch(e => { threeMods = null; throw e; }));
+
+  async function open3d(it) {
+    if (v3d) close3d();
+    const el = document.createElement("div");
+    el.className = "v3d";
+    el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", short(it) + " の3D");
+    el.innerHTML = `<div class="v3d-head"><h3>${esc(short(it))}</h3><button type="button" class="btn v3d-close">閉じる</button></div>
+      <div class="v3d-stage"><p class="v3d-msg">読み込み中…</p><p class="v3d-hint">1本指で回転・ピンチでズーム・2本指で移動</p></div>
+      <div class="v3d-foot"><small></small>
+        <button type="button" class="btn v3d-wire" aria-pressed="false">ワイヤー</button><button type="button" class="btn v3d-reset">視点を戻す</button></div>`;
+    document.body.appendChild(el);
+    document.body.style.overflow = "hidden";
+    const st = { el, alive: true, raf: 0, cleanup: [] };
+    v3d = st;
+    history.pushState({ v3d: 1 }, "");   // スマホの「戻る」で閉じられるように
+    el.querySelector(".v3d-close").addEventListener("click", () => history.state && history.state.v3d ? history.back() : close3d());
+    const msg = el.querySelector(".v3d-msg"), stage = el.querySelector(".v3d-stage");
+    try {
+      const [[THREE, { OrbitControls }, { GLTFLoader }, { DRACOLoader }], url] = await Promise.all([loadThree(), blobUrl(it.glb)]);
+      const gltf = await new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/")).loadAsync(url);
+      if (!st.alive) return;
+      const css = getComputedStyle(document.documentElement);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+      stage.appendChild(renderer.domElement);
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(css.getPropertyValue("--bg").trim() || "#ecebe7");
+      const model = gltf.scene;
+      let tris = 0;
+      model.traverse(o => {
+        if (!o.isMesh) return;
+        tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3;
+        [].concat(o.material).forEach(m => { if (m.transparent) m.depthWrite = false; });   // ガラスの後ろが消えないように
+      });
+      scene.add(model);
+      const box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
+      const maxd = Math.max(size.x, size.y, size.z) || 1;
+      // 床のグリッド：1マス 25cm
+      const gsize = Math.ceil(maxd * 1.5);
+      const grid = new THREE.GridHelper(gsize, gsize * 4, css.getPropertyValue("--muted").trim() || "#888", css.getPropertyValue("--line").trim() || "#ccc");
+      grid.position.set(center.x, box.min.y, center.z);
+      scene.add(grid);
+      const camera = new THREE.PerspectiveCamera(35, 1, maxd / 100, maxd * 100);
+      scene.add(camera);
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, 1.6));
+      const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+      sun.position.set(0.5, 1, 0.8);
+      camera.add(sun);
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      const fit = () => {
+        const w = stage.clientWidth, h = stage.clientHeight;
+        if (!w || !h) return;
+        renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+      };
+      const home = () => {   // 正面やや左上から、全体が収まる距離（縦長の画面では横の画角で決まる）
+        const vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * camera.aspect);
+        const dist = size.length() / 2 / Math.sin(Math.min(vf, hf) / 2) * 0.85;
+        camera.position.copy(center).add(new THREE.Vector3(-0.55, 0.45, 1).normalize().multiplyScalar(dist));
+        controls.target.copy(center); controls.update();
+      };
+      fit();
+      home();
+      const ro = new ResizeObserver(fit); ro.observe(stage);
+      const loop = () => { if (!st.alive) return; controls.update(); renderer.render(scene, camera); st.raf = requestAnimationFrame(loop); };
+      loop();
+      msg.hidden = true;
+      el.querySelector(".v3d-foot small").textContent = `${Math.round(tris).toLocaleString()} tris（ベベル込み）`;
+      el.querySelector(".v3d-reset").addEventListener("click", home);
+      el.querySelector(".v3d-wire").addEventListener("click", e => {
+        const on = e.currentTarget.getAttribute("aria-pressed") !== "true";
+        e.currentTarget.setAttribute("aria-pressed", String(on));
+        model.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(m => { m.wireframe = on; }); });
+      });
+      st.cleanup.push(() => {
+        ro.disconnect(); controls.dispose();
+        model.traverse(o => { if (o.isMesh) { o.geometry.dispose(); [].concat(o.material).forEach(m => m.dispose()); } });
+        grid.geometry.dispose(); grid.material.dispose();
+        renderer.dispose(); renderer.forceContextLoss();
+      });
+    } catch (e) {
+      if (st.alive) msg.textContent = e instanceof ApiError ? errText(e) : "3Dを読めませんでした（通信を確かめて、もう一度開いてください）";
+    }
+  }
+
+  function close3d() {
+    if (!v3d) return;
+    const st = v3d; v3d = null;
+    st.alive = false; cancelAnimationFrame(st.raf);
+    st.cleanup.forEach(f => { try { f(); } catch (e) {} });
+    st.el.remove();
+    document.body.style.overflow = "";
+  }
+  addEventListener("popstate", () => close3d());
+  addEventListener("keydown", e => { if (e.key === "Escape" && v3d) history.state && history.state.v3d ? history.back() : close3d(); });
 
   function renderAll() {
     document.getElementById("title").textContent = "3Dアセット工場";
