@@ -250,7 +250,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 <script>
 (() => {
   // ---------------------------------------------------------------- 設定・GitHub API
-  // データは非公開リポジトリ（data.json と img/）、返事は同じリポジトリの inbox/ にファイルで置く。PCが朝7:00に読む
+  // データは非公開リポジトリ（data.json と img/）、返事は同じリポジトリの inbox/ にファイルで置く。PCの見張りが5分おきに読んで振り分ける
   const DEFAULT_REPO = "yukkelovie/booth-factory";
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch (e) { return mem[k] || null; } },
@@ -420,7 +420,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       ${ready.map(it => card(it, "review")).join("") || '<p class="muted">確認待ちはありません。次は朝7時のラインで届きます。</p>'}
       ${prep.length ? `<h2>工程C確認待ち <small>${prep.length} 点</small></h2><p class="muted hint">消す面とパーツ分けを確認して「OK（確定）」でテクスチャ待ちへ。直す所があれば「直して」</p>${prep.map(prepCard).join("")}` : ""}
       ${ok.length ? `<h2>OK済み <small>${ok.length} 点</small></h2><p class="muted hint">Blenderで整えたら「整えた」を押すと、翌朝の工程Cが仕上げ前処理をします</p>${shelf(ok, "prep")}` : ""}
-      <p class="muted" style="font-size:12px">返事は翌朝7:00のラインが反映します（OK → 40_approved、直して → 30_feedback で作り直し、ボツ → 99_rejected）。</p>`;
+      <p class="muted" style="font-size:12px">返事はPCが5分以内に各段へ振り分けます（OK → OK済み、直して → 直し待ち、ボツ → ボツ）。作り直しは翌朝7:00のラインか「今すぐ直す」で。</p>`;
     wireDecide(el);
     hydrateImgs(el);
     const n = ready.length + prep.length;
@@ -450,7 +450,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     const sent = Object.values(inbox);
     el.innerHTML = `
       <h2>送った返事 <small>${sent.length} 件</small></h2>
-      ${sent.length ? `<ul class="logs">${sent.map(d => `<li><p class="log-h">${fmt(d.at)} ・ 次の7:00に反映</p><ul><li><b>${esc(d.item)}</b>：${esc(LABEL[d.action] || d.action)}${d.note ? "「" + esc(d.note) + "」" : ""}${(d.photos || []).length ? `（写真${d.photos.length}枚）` : ""}</li></ul></li>`).join("")}</ul>` : '<p class="muted">まだ反映されていない返事はありません。</p>'}
+      ${sent.length ? `<ul class="logs">${sent.map(d => `<li><p class="log-h">${fmt(d.at)} ・ 5分以内に振り分け</p><ul><li><b>${esc(d.item)}</b>：${esc(LABEL[d.action] || d.action)}${d.note ? "「" + esc(d.note) + "」" : ""}${(d.photos || []).length ? `（写真${d.photos.length}枚）` : ""}</li></ul></li>`).join("")}</ul>` : '<p class="muted">まだ反映されていない返事はありません。</p>'}
       <h2>工場のログ</h2>
       ${data ? `<ul class="logs">${data.logs.map(l => `<li><p class="log-h">${esc(l.title)}</p><ul>${l.lines.map(x => `<li>${md(x)}</li>`).join("")}</ul></li>`).join("")}</ul>` : noData()}`;
   }
@@ -556,7 +556,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><time>7:05</time><div><b>アプリを更新</b><br><span class="muted" style="font-size:13px">右上の ↻ を押すと、最新の状態が出る</span></div></li>
           <li><time>7:05</time><div><b>スリープに戻る</b><br><span class="muted" style="font-size:13px">ラインの最中にPCを触っていたら、スリープしないでそのまま</span></div></li>
         </ol>
-        <p class="muted" style="font-size:13px">送った返事は、その日の夜でも翌朝7時にまとめて反映されます。待てないときは「<a href="#h-now">今すぐ動かす</a>」で、その場で動かせます。</p>
+        <p class="muted" style="font-size:13px">送った返事は、PCが起きていれば5分以内に各段へ振り分けられます（直して → 直し待ち、OK → OK済み）。作り直しや工程Cは朝7時のラインでやります。待てないときは「<a href="#h-now">今すぐ動かす</a>」で、その場で動かせます。PCがスリープ中なら、振り分けも朝7時にまとめてやります。</p>
       </section>
 
       <section class="help-sec" id="h-card">
@@ -591,8 +591,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><b>直して</b>：押すとメモ欄が開く。直してほしいことを書いて「送る」。<b>写真を追加</b>で参考写真やスクショも付けられる（4枚まで）</li>
           <li><b>ボツ</b>：作らない。ボツ置き場へ</li>
         </ul>
-        <div class="sent" aria-hidden="true"><p>送信済み：直して「支柱をもう少し太く」 → 次の7:00に反映</p><button type="button" class="btn" tabindex="-1" style="pointer-events:none">取り消す</button></div>
-        <p style="font-size:14px">送るとこの表示に変わります。翌朝7時までは<b>取り消す</b>で取り消せます。押し直したいときは、取り消してから押し直してください。</p>
+        <div class="sent" aria-hidden="true"><p>送信済み：直して「支柱をもう少し太く」 → 5分以内に振り分け</p><button type="button" class="btn" tabindex="-1" style="pointer-events:none">取り消す</button></div>
+        <p style="font-size:14px">送るとこの表示に変わります。PCが受け取るまで（5分以内）は<b>取り消す</b>で取り消せます。受け取られると、カードは直し待ち・OK済みなどの段に移ります。作り直しは翌朝7時か、送った後に出る「今すぐ直す」で。</p>
         <p style="font-size:14px"><b>直してのメモのコツ</b>：「どこを」「どうしたい」を具体的に。例：「ベンチの後ろ脚は座面の高さから真っすぐ下に」「全高を 8m に」。寸法や写真があると一発で直りやすいです。</p>
         <div class="decide demo-btns" aria-hidden="true" style="border-top:0;padding-top:0">
           <div class="btns one"><button type="button" class="act-prep" tabindex="-1">整えた → 工程Cへ</button></div>
@@ -641,7 +641,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       <section class="help-sec" id="h-faq">
         <h3>よくある質問</h3>
         <dl class="faq">
-          <dt>押したのに何も変わらない</dt><dd>返事は翌朝7時に反映されます。それまではカードが「送信済み」になっていれば大丈夫です。すぐ反映したいときは「今すぐ直す」などを押してください。</dd>
+          <dt>押したのに何も変わらない</dt><dd>PCが5分おきに受け取りに来ます。それまではカードが「送信済み」になっていれば大丈夫です。PCがスリープ中なら、朝7時にまとめて受け取ります。作り直しまで急ぎたいときは「今すぐ直す」などを押してください。</dd>
           <dt>「今すぐ」を押したのに始まらない</dt><dd>PCがスリープ中か、電源が切れています。PCが起きれば5分以内に始まります。朝のラインが動いている最中なら、それが終わってから始まります。</dd>
           <dt>最新の状態にしたい</dt><dd>右上の ↻ を押してください。工場の状況は、毎朝のラインの後に更新されます。</dd>
           <dt>「鍵が無効です」と出る</dt><dd>トークンの期限切れか、消してしまった可能性があります。GitHub で作り直して、設定タブで貼り直してください。</dd>
@@ -689,7 +689,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     if (d) {
       btns.hidden = true; fix.hidden = true; sent.hidden = false;
       const n = (d.photos || []).length;
-      sent.querySelector("p").textContent = "送信済み：" + (LABEL[d.action] || d.action) + (d.note ? "「" + d.note + "」" : "") + (n ? `（写真${n}枚）` : "") + " → 次の7:00に反映";
+      sent.querySelector("p").textContent = "送信済み：" + (LABEL[d.action] || d.action) + (d.note ? "「" + d.note + "」" : "") + (n ? `（写真${n}枚）` : "") + " → 5分以内に振り分け";
       const now = sent.querySelector(".now"), mode = NOW_MODE[d.action];
       now.hidden = !mode;
       if (mode) { now.dataset.mode = mode; paintNow(now); }
