@@ -118,6 +118,9 @@ code { font-family: var(--f-data); font-size: .88em; }
 .chip { font-family: var(--f-data); font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; }
 .chip.ok { color: var(--ok); } .chip.warn { color: var(--warn); font-weight: 700; } .chip.plain { color: var(--muted); }
 .btn.v3d-open { width: 100%; min-height: 44px; }
+.path { display: flex; align-items: center; gap: 8px; }
+.path code { flex: 1; min-width: 0; font-family: var(--f-data); font-size: 11px; color: var(--muted); overflow-wrap: anywhere; line-height: 1.4; }
+.path .btn { flex: none; padding: 6px 12px; min-height: 36px; font-weight: 400; }
 /* 3Dビューア：全画面。上に名前と閉じる、真ん中にキャンバス、下に操作 */
 .v3d { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: flex; flex-direction: column; }
 .v3d-head { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line);
@@ -392,10 +395,13 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       </details>` : ""}
       ${it.prep ? uvSets(it) : ""}
       ${fb}
+      ${pathRow(it)}
       <p class="meta">ビルド ${esc(it.built)}</p>
     </article>`;
   }
 
+  // PCで開くファイルの場所（PCのブラウザなら「コピー」してエクスプローラーや Blender の「開く」に貼れる）
+  const pathRow = it => it.path ? `<div class="path"><code>${esc(it.path)}</code><button type="button" class="btn copy-path" data-path="${esc(it.path)}">コピー</button></div>` : "";
   const v3dBtn = (it, sub = "") => it.glb ? `<button type="button" class="btn v3d-open" data-v3d="${esc(it.id)}">3Dで回して見る${sub}</button>` : "";
 
   // 工程Cのテクスチャセットごとの UV 展開図（Print で始まるセットは写真・ラベル用）
@@ -424,6 +430,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       ${Object.keys(p.sets || {}).length ? `<h4>テクスチャセット</h4><ul>${Object.entries(p.sets).map(([s, os]) => `<li><b>${esc(s)}</b>：${esc(os.join("、"))}</li>`).join("")}</ul>` : ""}
       ${uvSets(it)}
       ${list("確認してほしい点", p.look)}
+      ${pathRow(it)}
       ${decideUI(it, "prep_review")}
     </article>`;
   }
@@ -568,7 +575,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
             <div class="ng"><b>ボツ</b>ボツ置き場へ</div>
           </div>
           ${arrow("OKのもの")}
-          ${step("🛠", "OK済み：Blender で整える", "40_approved のフォルダの .blend を自分で整えて「整えた」を押す", true)}
+          ${step("🛠", "OK済み：Blender で整える", "PCの _factory\\_作業台 フォルダの「1【整える】」から .blend を開いて整え、「整えた」を押す", true)}
           ${arrow("朝7:00")}
           ${step("⚙️", "工程C：仕上げ前処理", "見えない面の削除・パーツ分け・テクスチャセット・UV・FBX書き出しを仮でやる。写真やラベルを貼る大きい部品（商品見本・看板など）は専用のセット「Print」に分けて、UVを1枚まるごと使う")}
           ${arrow()}
@@ -608,6 +615,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><b>マテリアル</b>：部品の色分けの数。工程Cで ColorID（Substance の ID マップ用）になるだけで、最終的なマテリアル数ではない。多くても問題なし。最終的には工程Cで 1〜2 個＋ガラス・光るものなどに分ける</li>
           <li><b>見てほしい点</b>：工程Bが「ここは判断してほしい」と書いたこと。返事の参考に</li>
           <li><b>工程Bで直したこと</b>：検品で自動で直したこと</li>
+          <li><b>ファイルの場所</b>（カードの一番下）：PCで開く .blend のパス。PCのブラウザなら「コピー」で貼り付けられる。工程Cの後は _prep の .blend。いつも開くなら PC の <code>_作業台</code> フォルダのほうが早い（<a href="#h-faq">よくある質問</a>）</li>
           <li><b>3Dで回して見る</b>：押すと全画面で3Dが開く。1本指で回転、ピンチでズーム、2本指で移動。「ワイヤー」は押すたびに なし → 三角 → 四角 と切り替わる（三角＝GPU・Unityが実際に描く三角形、四角＝Blender で見えるのと同じ辺）。「視点を戻す」で最初の向きに。閉じるはスマホの「戻る」でもOK。4面図では見えない裏側や隙間の確認に。工程C確認待ちのカードでは、自分で整えた .blend の形が出る（工程Cの仮の結果ではない）。ボツのものには出ない</li>
           <li><b>UV</b>（たためる）：<b>展開図</b>（UVの切り開き方）と<b>チェッカー</b>（市松模様を貼った絵。ゆがんでいなければ OK）。工程Cの後は、テクスチャセットごとの展開図が見られる（工程C確認待ちのカード・テクスチャ待ちの一覧）。Print で始まるセットは写真・ラベル用で、上向きのまま並ぶ</li>
         </ul>
@@ -680,6 +688,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <dt>PC でも見たい</dt><dd>同じ URL を開いて、PC 用のトークンを設定タブに貼れば見られます。データは共通です。</dd>
           <dt>「書き込みの権限がありません」と出る</dt><dd>鍵が「読むだけ」で作られています。GitHub の Fine-grained tokens でその鍵を開いて Edit → Contents を Read and write にして Update。鍵の貼り直しはいりません。</dd>
           <dt>スマホを無くした</dt><dd>GitHub の Settings → Developer settings → Fine-grained tokens で、スマホ用のトークンを Delete してください。</dd>
+          <dt>どのファイルを開けばいいかわからない</dt><dd>PCの <code>G:\\マイドライブ\\booth\\products\\_factory\\_作業台</code> を開いてください。あなたの出番のもの（1【整える】＝OK済み、2【C確認】＝工程Cの結果、3【塗る】＝テクスチャ待ち）の .blend へのショートカットが並んでいて、ダブルクリックで Blender が開きます。アプリが更新されるたびに作り直されるので、終わったものは自動で消えます。エクスプローラーのクイックアクセスにピン留めしておくと便利です。カードの一番下にもファイルの場所が出ていて、PCのブラウザなら「コピー」で Blender の「開く」やエクスプローラーのアドレス欄に貼れます。</dd>
           <dt>アイデアを足したい・順番を変えたい</dt><dd>00_ideas\\ideas.md を直接書き換えるか、Claude のチャットで頼んでください。</dd>
         </dl>
       </section>`;
@@ -968,6 +977,11 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   document.addEventListener("click", e => {
     const b = e.target.closest("[data-open-stage]");
     if (b) openStage(b.dataset.openStage, b.dataset.openItem);
+    const cp = e.target.closest(".copy-path");
+    if (cp) {
+      const done = t => { cp.textContent = t; setTimeout(() => { cp.textContent = "コピー"; }, 1500); };
+      (navigator.clipboard ? navigator.clipboard.writeText(cp.dataset.path) : Promise.reject()).then(() => done("コピーした"), () => done("できません"));
+    }
     const v = e.target.closest("[data-v3d]");
     if (v && data) { const it = data.items.find(i => i.id === v.dataset.v3d); if (it && it.glb) open3d(it); }
   });
