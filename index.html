@@ -808,7 +808,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <dt>スマホを無くした</dt><dd>GitHub の Settings → Developer settings → Fine-grained tokens で、スマホ用のトークンを Delete してください。</dd>
           <dt>ハイポリの角の丸め方を変えたい</dt><dd>工程Cは、部品ごとに50°以上曲がった角（八角形の丸棒の45°は丸めない）を、部品の肉厚の8%（1〜8mm）の幅で丸めます。全体が3cm未満の小物（ビス頭など）は丸めません。同じグループ（ひとつの組み立て）で触れ合っている部品（脚とレール、縞のバーなど）は1つにつなげてから丸めるので、継ぎ目に溝や段はできません。違う部品との境目（埋まっている面の辺、部品が乗っている辺）も丸めません（境目を丸めると、法線マップに溝の線が出るため）。地面に接する辺は、ポール・街灯のように<b>地面に固定</b>されている物は丸めず、ベンチ・自販機のように<b>置いてある</b>物は丸めます（どちらかはカードのチップに出ます。違っていたら「直して」のメモで「これは固定」「これは置いてある」と書いてください）。工程C確認待ちのカードの「ハイポリで丸める角」で、オレンジの所が丸まります。<br>変えたいときは2通り：①Blenderで整えるとき、丸めたい辺にだけ<b>ベベルウェイト</b>を付ける（編集モードで辺を選んで、サイドバー［N］の「アイテム」タブにあるベベルウェイト、または 辺メニュー →「辺のベベルウェイト」）。印を付けた部品は、印の辺だけ丸まる（1.0＝ふつうの幅、0.5＝半分）。②「整えた」や「直して」のメモに「ビスも丸めて」「扉は丸めないで」「全体に丸みを強く」などと書く。</dd>
           <dt>同じ物を並べたセット（コーン2本＋バーなど）は？</dt><dd>工程Cが「販売単位」に分けます。同じ形の2つ目以降は作らず1つ分だけ作り、単位ごとにFBX（ピボットが原点、外せる付属は子オブジェクト）を書き出します。セットは Unity で、単位のプレハブを並べた入れ子のプレハブとして組みます（並べる位置は工程C確認待ちのカードの「セットの並べ方」）。1つ直せばセットも直ります。</dd>
-          <dt>消す面や丸める角を3Dで見たい</dt><dd>工程C確認待ちのカードの「3Dで確認（消す面／丸める角／ローポリ／ハイポリ）」を押すと、上のボタンで4つを切り替えて回して見られます。カードの「消す面」「丸める角」「パーツ分け」（＝ローポリ）の画像を押しても、それぞれの層で開きます。<b>消す面</b>：赤＝消す、オレンジ＝一部だけ隠れる（残す）、半透明＝残す。<b>丸める角</b>：オレンジ＝ハイポリで丸める角（太めに描いてある）。<b>ローポリ</b>：実際に使う形（消す面を消してスムーズをかけた後）。<b>ハイポリ</b>：ベイク用。画像では見えにくい底や内側（重しの底面、コーンの中など）の確認に。</dd>
+          <dt>消す面や丸める角を3Dで見たい</dt><dd>工程C確認待ちのカードの「3Dで確認（消す面／丸める角／ローポリ／ハイポリ）」を押すと、上のボタンで4つを切り替えて回して見られます。カードの「消す面」「丸める角」「パーツ分け」（＝ローポリ）の画像を押しても、それぞれの層で開きます。<b>消す面</b>：赤＝消す、オレンジ＝一部だけ隠れる（残す）、半透明＝残す。<b>丸める角</b>：オレンジ＝ハイポリで丸める角（太めに描いてある）。<b>ローポリ</b>：実際に使う形（消す面を消してスムーズをかけた後）。<b>ハイポリ</b>：ベイク用。画像では見えにくい底や内側（重しの底面、コーンの中など）の確認に。下の「ワイヤー」は どの層でも なし → 三角 → 四角 と切り替わり、層を切り替えると線もその層の形に変わります（四角＝Blender の辺。ローポリ・ハイポリの割り方の確認に）。</dd>
           <dt>重しや蓋など、取り外せる部品は？</dt><dd>載せてある・はめてあるだけで外せる部品（コーンの重し・コーンバー、蓋、置き物など）は、工程Cが「取り外せる部品」として扱うと、ほかの部品と当たっている面を消さずに残し、そこの角も丸めます（外したときに見えるため）。工程Cが判断できないこともあるので、「整えた」のメモに「重しとバーは取り外せる部品」のように書いておくと確実です。</dd>
           <dt>縞のバーみたいに色の境目がある物は？</dt><dd>ローポリでは色の境目で分割しません（同じ断面でつないだ継ぎ目は頂点を1つにまとめて線を消す）。色はテクスチャで塗ります。黒と黄色などの色分けのマスク（ID マップ）は、ハイポリには境目が残っているので、ハイポリの ColorID から焼けます。長い筒はUVが細長くなりすぎないよう、色とは関係ない所で何か所か切ってあります。</dd>
           <dt>ローポリのスムーズは？</dt><dd>工程Cが、全部の面をスムーズにして50°以上曲がった辺だけ角にする「自動スムーズ」をかけ直します。整えるときにスムーズが外れても大丈夫です。触ってほしくないときはメモに「スムーズはそのまま」と書いてください。</dd>
@@ -1242,9 +1242,18 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       el.querySelector(".v3d-reset").addEventListener("click", home);
       // ワイヤー：なし → 三角（GPUが描く三角形）→ 四角（Blender の辺）→ なし。線は面の上に重ねる。押したときに初めて作る
       const lineMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.45 });
-      // 工程Cの確認には四角の線（.edges.bin）がないので、なし ⇔ 三角 だけ
-      const wires = {}, WIRE_NEXT = check ? { off: "tri", tri: "off" } : { off: "tri", tri: "quad", quad: "off" }, WIRE_TEXT = { off: "なし", tri: "三角", quad: "四角" };
-      let wireMode = "off";
+      // 工程Cの確認は層ごとに四角の線がある（prep.check_edges）。古いデータでなければ、なし ⇔ 三角 だけ
+      const chkEdges = check ? (it.prep.check_edges || {}) : null;
+      const hasQuad = !check || Object.keys(chkEdges).length > 0;
+      const wires = {}, WIRE_NEXT = hasQuad ? { off: "tri", tri: "quad", quad: "off" } : { off: "tri", tri: "off" }, WIRE_TEXT = { off: "なし", tri: "三角", quad: "四角" };
+      let wireMode = "off", curLayer = check ? start : null;
+      const quadPath = () => check ? chkEdges[curLayer] : it.glb + ".edges.bin";
+      const makeQuad = async () => {
+        const p = quadPath();
+        if (!p) return new THREE.Group();   // この層には線がない
+        return new THREE.LineSegments(await loadEdges(THREE, p), lineMat);
+      };
+      const dropWire = k => { if (wires[k]) { scene.remove(wires[k]); wires[k].traverse(o => { if (o.geometry) o.geometry.dispose(); }); delete wires[k]; } };
       const shown = o => { for (let x = o; x; x = x.parent) if (!x.visible) return false; return true; };
       const makeTri = () => {   // 見えている物だけ
         const g = new THREE.Group();
@@ -1262,10 +1271,14 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           el.querySelectorAll("[data-layer]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.layer === k)));
           hint.textContent = (CHK_LAYERS.find(x => x[0] === k) || [])[2] || "";
           el.querySelector(".v3d-foot small").textContent = `${Math.round(n).toLocaleString()} tris`;
-          if (wires.tri) {   // 三角の線は見えている層で作り直す
-            scene.remove(wires.tri);
-            delete wires.tri;
-            if (wireMode === "tri") { wires.tri = makeTri(); scene.add(wires.tri); }
+          curLayer = k;
+          // 線は見えている層で作り直す
+          dropWire("tri");
+          dropWire("quad");
+          if (wireMode === "tri") { wires.tri = makeTri(); scene.add(wires.tri); }
+          if (wireMode === "quad") {
+            makeQuad().then(w => { if (st.alive && curLayer === k && wireMode === "quad") { dropWire("quad"); wires.quad = w; scene.add(w); } })
+              .catch(() => { el.querySelector(".v3d-foot small").textContent = "四角の線は読めませんでした"; });
           }
         };
         el.querySelectorAll("[data-layer]").forEach(b => b.addEventListener("click", () => showLayer(b.dataset.layer)));
@@ -1277,7 +1290,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         const next = WIRE_NEXT[wireMode];
         wireBtn.disabled = true;
         try {
-          if (next !== "off" && !wires[next]) wires[next] = next === "tri" ? makeTri() : new THREE.LineSegments(await loadEdges(THREE, it.glb + ".edges.bin"), lineMat);
+          if (next !== "off" && !wires[next]) wires[next] = next === "tri" ? makeTri() : await makeQuad();
           wireMode = next;
         } catch (e) {   // 四角が読めない（古いデータ・古い端末）ときは、なしに戻す
           wireMode = "off";
@@ -1333,7 +1346,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-22.7";
+  const APP_VERSION = "2026-10-22.8";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
