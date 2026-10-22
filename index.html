@@ -60,6 +60,8 @@ img { max-width: 100%; display: block; }
 .reload { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; min-width: 44px; min-height: 44px;
   cursor: pointer; font-size: 18px; }
 .reload.spin { animation: spin 1s linear infinite; }
+.update-bar { display: block; width: 100%; max-width: 720px; margin: 8px auto 0; padding: 10px 12px; border-radius: 10px; cursor: pointer;
+  border: 0; background: var(--mark); color: var(--mark-ink); font-weight: 700; min-height: 44px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 main { max-width: 720px; margin: 0 auto;
@@ -286,6 +288,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     <h1><span class="stripe" aria-hidden="true"></span><span id="title">3Dアセット工場</span><p class="when" id="when"></p></h1>
     <button class="reload" id="reload" type="button" aria-label="最新にする">↻</button>
   </div>
+  <button type="button" class="update-bar" id="update-bar" hidden>新しい版のアプリがあります（押して更新）</button>
 </header>
 
 <main id="view-review" data-view="review"></main>
@@ -1324,7 +1327,22 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     if (!document.getElementById("view-stage").hidden) renderStage();
   }
 
+  // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
+  // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
+  const APP_VERSION = "2026-10-22.4";
+  async function checkVersion() {
+    try {
+      const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
+      const bar = document.getElementById("update-bar");
+      if (v && v !== APP_VERSION && /^[\w.-]+$/.test(v)) {
+        bar.hidden = false;
+        bar.onclick = () => location.replace(`./?v=${encodeURIComponent(v)}`);
+      } else bar.hidden = true;
+    } catch (e) {}
+  }
+
   async function refresh() {
+    checkVersion();
     const btn = document.getElementById("reload");
     btn.classList.add("spin"); btn.disabled = true;
     loadErr = null;
