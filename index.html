@@ -679,7 +679,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           ${arrow("朝7:00")}
           ${step("🧱", "工程A：ブロックアウト", "Claude がざっくりした形を作る。1日に新作1つ＋直し最大3つ")}
           ${arrow()}
-          ${step("🔍", "工程B：検品", "Claude が浮き・めり込み・ポリゴン数・UV をチェックして、気になる所を直す（部品は面と面でぴったり突き合わせる。めり込みはNG）")}
+          ${step("🔍", "工程B：検品", "Claude が浮き・めり込み・ポリゴン数・UV をチェックして、気になる所を直す（部品は面と面でぴったり突き合わせる。めり込みはNG。ただし丸い面に付く・横から生える部品の少しの入り込みはOK）")}
           ${arrow()}
           ${step("👀", "確認待ち", "4面図を見て OK／直して／ボツ を押す", true)}
           ${arrow()}
@@ -1346,7 +1346,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-23.2";
+  const APP_VERSION = "2026-10-23.3";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
