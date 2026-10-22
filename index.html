@@ -147,6 +147,7 @@ details.sub pre { white-space: pre-wrap; font-size: 12px; margin: 8px 0 0; font-
 .btns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .btns.one { grid-template-columns: 1fr; } .btns.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .btns.prepfix { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+.btns.prepfix .act-fix { background: var(--surface) !important; border-color: var(--line) !important; color: var(--ink); }   /* OK済みの直しは控えめに */
 .decide button, .btn { font-weight: 700; padding: 10px 6px; border-radius: 8px; border: 1px solid var(--line);
   background: var(--bg); cursor: pointer; min-height: 44px; }
 .decide button:disabled, .btn:disabled { opacity: .45; cursor: default; }
@@ -351,6 +352,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     // OK済みからも「直して」で作り直しに戻せる（Blenderで整えた .blend は _backup に残る）
     prep: { acts: ["prep", "fix"], cls: "prepfix", note: { prep: ["工程Cへのメモ（なくてもOK）", "例：扉はギミックにしたい／UVはそのまま"],
       fix: ["作り直してほしいこと", "例：脚をもう少し太く（Blenderで整えた分は _backup に残ります）"] } },
+    prep_shelf: { acts: ["prep"], cls: "one", note: { prep: ["工程Cへのメモ（なくてもOK）", "例：扉はギミックにしたい／UVはそのまま"] } },   // 小さいサムネ用（直しは大きいカードで）
     prep_review: { acts: ["prep_ok", "prep_fix"], cls: "two", note: { prep_fix: ["工程Cへの直し", "例：取っ手の面は消さないで／ガラスは別のテクスチャセットに"] } },
     texturing: { acts: ["back_ok"], cls: "one", note: {} },
     rejected: { acts: ["unreject"], cls: "one", note: {} },
@@ -466,7 +468,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       <h2>確認待ち <small>${ready.length} 点</small></h2>
       ${ready.map(it => card(it, "review")).join("") || '<p class="muted">確認待ちはありません。次は朝7時のラインで届きます。</p>'}
       ${prep.length ? `<h2>工程C確認待ち <small>${prep.length} 点</small></h2><p class="muted hint">消す面とパーツ分けを確認して「OK（確定）」でテクスチャ待ちへ。直す所があれば「直して」</p>${prep.map(prepCard).join("")}` : ""}
-      ${ok.length ? `<h2>OK済み <small>${ok.length} 点</small></h2><p class="muted hint">Blenderで整えたら「整えた」を押すと、翌朝の工程Cが仕上げ前処理をします</p>${shelf(ok, "prep")}` : ""}
+      ${ok.length ? `<h2>OK済み <small>${ok.length} 点</small></h2><p class="muted hint">Blenderで整えたら「整えた」を押すと、翌朝の工程Cが仕上げ前処理をします。作り直したいときはサムネを押して、大きいカードの「直して」</p>${shelf(ok, "prep_shelf")}` : ""}
       <p class="muted" style="font-size:12px">返事はPCが5分以内に各段へ振り分けます（OK → OK済み、直して → 直し待ち、ボツ → ボツ）。作り直しは翌朝7:00のラインか「今すぐ直す」で。</p>`;
     wireDecide(el);
     hydrateImgs(el);
