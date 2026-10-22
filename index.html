@@ -146,6 +146,7 @@ details.sub pre { white-space: pre-wrap; font-size: 12px; margin: 8px 0 0; font-
 .decide { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
 .btns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .btns.one { grid-template-columns: 1fr; } .btns.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.btns.prepfix { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
 .decide button, .btn { font-weight: 700; padding: 10px 6px; border-radius: 8px; border: 1px solid var(--line);
   background: var(--bg); cursor: pointer; min-height: 44px; }
 .decide button:disabled, .btn:disabled { opacity: .45; cursor: default; }
@@ -344,13 +345,18 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   const list = (title, xs) => xs && xs.length ? `<h4>${title}</h4><ul>${xs.map(x => `<li>${md(x)}</li>`).join("")}</ul>` : "";
   const short = it => it.name.split("／")[0];
 
-  const LABEL = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた", prep_ok: "工程C確定", prep_fix: "工程Cの直し" };
+  const LABEL = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた", prep_ok: "工程C確定", prep_fix: "工程Cの直し", back_ok: "OK済みに戻す", unreject: "ボツ取り消し" };
   const MODES = {
     review: { acts: ["ok", "fix", "reject"], cls: "", note: { fix: ["直してほしいこと", "例：支柱をもう少し太く。屋根はフラットに"] } },
-    prep: { acts: ["prep"], cls: "one", note: { prep: ["工程Cへのメモ（なくてもOK）", "例：扉はギミックにしたい／UVはそのまま"] } },
+    // OK済みからも「直して」で作り直しに戻せる（Blenderで整えた .blend は _backup に残る）
+    prep: { acts: ["prep", "fix"], cls: "prepfix", note: { prep: ["工程Cへのメモ（なくてもOK）", "例：扉はギミックにしたい／UVはそのまま"],
+      fix: ["作り直してほしいこと", "例：脚をもう少し太く（Blenderで整えた分は _backup に残ります）"] } },
     prep_review: { acts: ["prep_ok", "prep_fix"], cls: "two", note: { prep_fix: ["工程Cへの直し", "例：取っ手の面は消さないで／ガラスは別のテクスチャセットに"] } },
+    texturing: { acts: ["back_ok"], cls: "one", note: {} },
+    rejected: { acts: ["unreject"], cls: "one", note: {} },
   };
-  const BTN_TEXT = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた → 工程Cへ", prep_ok: "OK（確定）", prep_fix: "直して" };
+  const BTN_TEXT = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた → 工程Cへ", prep_ok: "OK（確定）", prep_fix: "直して",
+    back_ok: "OK済みに戻す（整え直す）", unreject: "確認待ちに戻す" };
   const NOTE_REQUIRED = ["fix", "prep_fix"];
 
   function decideUI(it, mode) {
@@ -640,6 +646,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <div class="decide demo-btns" aria-hidden="true" style="border-top:0;padding-top:0">
           <div class="btns one"><button type="button" class="act-prep" tabindex="-1">整えた → 工程Cへ</button></div>
         </div>
+        <p style="font-size:14px"><b>あとから戻す</b>：OKを出した後でも戻せます。<b>OK済み</b>のカードの「直して」で作り直しに戻る（Blenderで整えた .blend は、作り直す前にアイテムのフォルダの <code>_backup</code> に保存されます）。<b>テクスチャ待ち</b>は「OK済みに戻す」でもう一度整えられる。<b>ボツ</b>は「確認待ちに戻す」で復活。どれもラインタブの数字のマスから一覧を開くと押せます。</p>
         <p style="font-size:14px"><b>整えた</b>（OK済みのもの）：Blender で整え終わったら押す。メモ欄に「扉はギミックにしたい」「UVはそのまま」「ビスも丸めて」など工程Cへの指示を書けます（なくてもOK）。ローポリのベベルは、入れたい所だけ自分で入れて<b>適用してから</b>押す（モディファイアのままだと工程Cで外れる）。</p>
       </section>
 
@@ -693,6 +700,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <dt>スマホを無くした</dt><dd>GitHub の Settings → Developer settings → Fine-grained tokens で、スマホ用のトークンを Delete してください。</dd>
           <dt>ハイポリの角の丸め方を変えたい</dt><dd>工程Cは、部品ごとに30°以上曲がった角を、部品の肉厚の8%（1〜8mm）の幅で丸めます。全体が3cm未満の小物（ビス頭など）は丸めません。同じグループ（ひとつの組み立て）で触れ合っている部品（脚とレール、縞のバーなど）は1つにつなげてから丸めるので、継ぎ目に溝や段はできません。違う部品との境目（埋まっている面の辺、部品が乗っている辺）も丸めません（境目を丸めると、法線マップに溝の線が出るため）。地面に接する辺は、ポール・街灯のように<b>地面に固定</b>されている物は丸めず、ベンチ・自販機のように<b>置いてある</b>物は丸めます（どちらかはカードのチップに出ます。違っていたら「直して」のメモで「これは固定」「これは置いてある」と書いてください）。工程C確認待ちのカードの「ハイポリで丸める角」で、オレンジの所が丸まります。<br>変えたいときは2通り：①Blenderで整えるとき、丸めたい辺にだけ<b>ベベルウェイト</b>を付ける（編集モードで辺を選んで、サイドバー［N］の「アイテム」タブにあるベベルウェイト、または 辺メニュー →「辺のベベルウェイト」）。印を付けた部品は、印の辺だけ丸まる（1.0＝ふつうの幅、0.5＝半分）。②「整えた」や「直して」のメモに「ビスも丸めて」「扉は丸めないで」「全体に丸みを強く」などと書く。</dd>
           <dt>コーンやバケツみたいに中が空洞の物は？</dt><dd>ブロックアウトでは中身の詰まった形で作り、工程Cで口を開けて内側に厚み（コーンなら4mm）を付けます。UVは内側にも外側と同じ密度で取るので、そのぶん各島は小さくなります。開けたい部品や向き（底・上）は「整えた」のメモで指定できます（例：「コーンの底を開けて中空に」）。下から中を見せたいときは、台など下にある部品にも穴が必要です。</dd>
+          <dt>Blender のアセットブラウザで使いたい</dt><dd>工場のアイテムは全部 <code>G:\\マイドライブ\\booth\\products\\_factory\\_asset_library</code> にアセットとして入っています（ボツ以外）。Blender の［編集］→［プリファレンス］→［ファイルパス］→［アセットライブラリ］の「＋」でこのフォルダを足すと、アセットブラウザに「3Dアセット工場」の分類（確認待ち・OK済み…）で出ます。工程が進むと中身も分類も自動で更新されます（工程Cの後はローポリの形）。シーンに置くときに読み込み方法を「リンク」にしておくと、ライブラリが更新されたときに置いた物も新しくなります（「アペンド」だと置いた時点の形のまま）。</dd>
           <dt>どのファイルを開けばいいかわからない</dt><dd>PCの <code>G:\\マイドライブ\\booth\\products\\_factory\\_作業台</code> を開いてください。あなたの出番のもの（1【整える】＝OK済み、2【C確認】＝工程Cの結果、3【塗る】＝テクスチャ待ち）の .blend へのショートカットが並んでいて、ダブルクリックで Blender が開きます。アプリが更新されるたびに作り直されるので、終わったものは自動で消えます。エクスプローラーのクイックアクセスにピン留めしておくと便利です。カードの一番下にもファイルの場所が出ていて、PCのブラウザなら「コピー」で Blender の「開く」やエクスプローラーのアドレス欄に貼れます。</dd>
           <dt>アイデアを足したい・順番を変えたい</dt><dd>00_ideas\\ideas.md を直接書き換えるか、Claude のチャットで頼んでください。</dd>
         </dl>
@@ -939,11 +947,11 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     "10_blockout": { label: "工程A済み", hint: "形ができて、工程Bの検品待ち" },
     "20_ready": { label: "確認待ち", hint: "4面図を見て OK／直して／ボツ", mode: "review" },
     "30_feedback": { label: "直し待ち", hint: "次のライン（または「今すぐ直す」）で作り直します" },
-    "40_approved": { label: "OK済み", hint: "Blenderで整えたら「整えた」を押すと、工程Cが仕上げ前処理をします", mode: "prep" },
+    "40_approved": { label: "OK済み", hint: "Blenderで整えたら「整えた」を押すと、工程Cが仕上げ前処理をします。形から作り直したいときは「直して」", mode: "prep" },
     "50_prep": { label: "工程C待ち", hint: "次のライン（または「今すぐ」）で工程Cが仕上げ前処理をします" },
     "55_prep_review": { label: "工程C確認待ち", hint: "消す面とパーツ分けを確認して OK（確定）／直して" },
-    "60_texturing": { label: "テクスチャ待ち", hint: "_prep フォルダの FBX を Substance Painter へ" },
-    "99_rejected": { label: "ボツ", hint: "作らないことにしたもの" },
+    "60_texturing": { label: "テクスチャ待ち", hint: "_prep フォルダの FBX を Substance Painter へ。もう一度整えたいときは「OK済みに戻す」", mode: "texturing" },
+    "99_rejected": { label: "ボツ", hint: "作らないことにしたもの。やっぱり作るなら「確認待ちに戻す」", mode: "rejected" },
   };
   let curStage = null, prevTab = "line";
 
