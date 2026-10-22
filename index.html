@@ -173,6 +173,10 @@ code { font-family: var(--f-data); font-size: .88em; }
 .v3d-stage canvas { display: block; width: 100%; height: 100%; }
 .v3d-msg { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; text-align: center;
   font-size: 14px; color: var(--muted); pointer-events: none; }
+.v3d-layers { display: flex; gap: 6px; padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--line); }
+.v3d-layers .btn { flex: 1; padding: 8px 4px; min-height: 40px; }
+.v3d-layers .btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .v3d-hint { position: absolute; left: 0; right: 0; top: 8px; margin: 0; text-align: center; font-size: 12px; color: var(--muted); pointer-events: none; }
 .v3d-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border-top: 1px solid var(--line);
   padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 8px) max(16px, env(safe-area-inset-left, 0px)); }
@@ -507,6 +511,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <span class="chip plain">ギミック ${esc((p.gimmicks || []).join("、") || "なし")}</span>
         ${p.ground ? `<span class="chip plain">${p.ground === "fixed" ? "地面に固定（下の角は丸めない）" : "置いてある（下の角も丸める）"}</span>` : ""}
       </div>
+      ${p.check_glb ? `<button type="button" class="btn primary v3d-open" data-v3d-check="${esc(it.id)}">3Dで確認（消す面／丸める角／完成形）</button>` : ""}
       ${v3dBtn(it, "（整えた .blend）")}
       ${it.img.sets ? `<h4>パーツ分け・テクスチャセット（色＝セット）</h4>${pic(it.img.sets, "テクスチャセット色分け")}` : ""}
       ${(p.objects || []).length ? `<h4>オブジェクト</h4><ul>${p.objects.map(o => `<li><code>${esc(o.name)}</code> ${o.tris.toLocaleString()} tris ・ ${esc(o.sets.join(" / "))}</li>`).join("")}</ul>` : ""}
@@ -792,6 +797,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <dt>「書き込みの権限がありません」と出る</dt><dd>鍵が「読むだけ」で作られています。GitHub の Fine-grained tokens でその鍵を開いて Edit → Contents を Read and write にして Update。鍵の貼り直しはいりません。</dd>
           <dt>スマホを無くした</dt><dd>GitHub の Settings → Developer settings → Fine-grained tokens で、スマホ用のトークンを Delete してください。</dd>
           <dt>ハイポリの角の丸め方を変えたい</dt><dd>工程Cは、部品ごとに50°以上曲がった角（八角形の丸棒の45°は丸めない）を、部品の肉厚の8%（1〜8mm）の幅で丸めます。全体が3cm未満の小物（ビス頭など）は丸めません。同じグループ（ひとつの組み立て）で触れ合っている部品（脚とレール、縞のバーなど）は1つにつなげてから丸めるので、継ぎ目に溝や段はできません。違う部品との境目（埋まっている面の辺、部品が乗っている辺）も丸めません（境目を丸めると、法線マップに溝の線が出るため）。地面に接する辺は、ポール・街灯のように<b>地面に固定</b>されている物は丸めず、ベンチ・自販機のように<b>置いてある</b>物は丸めます（どちらかはカードのチップに出ます。違っていたら「直して」のメモで「これは固定」「これは置いてある」と書いてください）。工程C確認待ちのカードの「ハイポリで丸める角」で、オレンジの所が丸まります。<br>変えたいときは2通り：①Blenderで整えるとき、丸めたい辺にだけ<b>ベベルウェイト</b>を付ける（編集モードで辺を選んで、サイドバー［N］の「アイテム」タブにあるベベルウェイト、または 辺メニュー →「辺のベベルウェイト」）。印を付けた部品は、印の辺だけ丸まる（1.0＝ふつうの幅、0.5＝半分）。②「整えた」や「直して」のメモに「ビスも丸めて」「扉は丸めないで」「全体に丸みを強く」などと書く。</dd>
+          <dt>消す面や丸める角を3Dで見たい</dt><dd>工程C確認待ちのカードの「3Dで確認（消す面／丸める角／完成形）」を押すと、上のボタンで3つを切り替えて回して見られます。<b>消す面</b>：赤＝消す、オレンジ＝一部だけ隠れる（残す）、半透明＝残す。<b>丸める角</b>：オレンジ＝ハイポリで丸める角（太めに描いてある）。<b>完成形</b>：ハイポリ。画像では見えにくい底や内側（重しの底面、コーンの中など）の確認に。</dd>
           <dt>重しや蓋など、取り外せる部品は？</dt><dd>載せてある・はめてあるだけで外せる部品（コーンの重し・コーンバー、蓋、置き物など）は、工程Cが「取り外せる部品」として扱うと、ほかの部品と当たっている面を消さずに残し、そこの角も丸めます（外したときに見えるため）。工程Cが判断できないこともあるので、「整えた」のメモに「重しとバーは取り外せる部品」のように書いておくと確実です。</dd>
           <dt>縞のバーみたいに色の境目がある物は？</dt><dd>ローポリでは色の境目で分割しません（同じ断面でつないだ継ぎ目は頂点を1つにまとめて線を消す）。色はテクスチャで塗ります。黒と黄色などの色分けのマスク（ID マップ）は、ハイポリには境目が残っているので、ハイポリの ColorID から焼けます。長い筒はUVが細長くなりすぎないよう、色とは関係ない所で何か所か切ってあります。</dd>
           <dt>ローポリのスムーズは？</dt><dd>工程Cが、全部の面をスムーズにして50°以上曲がった辺だけ角にする「自動スムーズ」をかけ直します。整えるときにスムーズが外れても大丈夫です。触ってほしくないときはメモに「スムーズはそのまま」と書いてください。</dd>
@@ -1111,6 +1117,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     }
     const v = e.target.closest("[data-v3d]");
     if (v && data) { const it = data.items.find(i => i.id === v.dataset.v3d); if (it && it.glb) open3d(it); }
+    const vc = e.target.closest("[data-v3d-check]");
+    if (vc && data) { const it = data.items.find(i => i.id === vc.dataset.v3dCheck); if (it && it.prep && it.prep.check_glb) open3d(it, true); }
   });
 
   // ---------------------------------------------------------------- 3Dビューア（glb/<Item>.glb、Draco圧縮）
@@ -1141,13 +1149,20 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     return g;
   }
 
-  async function open3d(it) {
+  // 工程Cの3D確認（check.glb）の層。オブジェクト名の頭で分かれている（工程Cの prep_item.py が書き出す）
+  const CHK_LAYERS = [["CHK_hidden", "消す面", "赤＝消す ／ オレンジ＝一部だけ隠れる（残す） ／ 半透明＝残す"],
+    ["CHK_bevel", "丸める角", "オレンジ＝ハイポリで丸める角（見やすいよう太めに描いてある）"],
+    ["CHK_high", "完成形", "ハイポリ（テクスチャセットの色）"]];
+
+  async function open3d(it, check) {   // check＝工程Cの3D確認（消す面／丸める角／完成形）
     if (v3d) close3d();
+    const src = check ? it.prep.check_glb : it.glb;
     const el = document.createElement("div");
     el.className = "v3d";
     el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", short(it) + " の3D");
-    el.innerHTML = `<div class="v3d-head"><h3>${esc(short(it))}</h3><button type="button" class="btn v3d-close">閉じる</button></div>
-      <div class="v3d-stage"><p class="v3d-msg">読み込み中…</p><p class="v3d-hint">1本指で回転・ピンチでズーム・2本指で移動</p></div>
+    el.innerHTML = `<div class="v3d-head"><h3>${esc(short(it))}${check ? " ・ 工程Cの確認" : ""}</h3><button type="button" class="btn v3d-close">閉じる</button></div>
+      ${check ? `<div class="v3d-layers" role="group" aria-label="見るもの">${CHK_LAYERS.map(([k, l], i) => `<button type="button" class="btn" data-layer="${k}" aria-pressed="${i === 0}">${l}</button>`).join("")}</div>` : ""}
+      <div class="v3d-stage"><p class="v3d-msg">読み込み中…</p><p class="v3d-hint">${check ? esc(CHK_LAYERS[0][2]) : "1本指で回転・ピンチでズーム・2本指で移動"}</p></div>
       <div class="v3d-foot"><small></small>
         <button type="button" class="btn v3d-wire" aria-pressed="false">ワイヤー</button><button type="button" class="btn v3d-reset">視点を戻す</button></div>`;
     document.body.appendChild(el);
@@ -1158,7 +1173,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     el.querySelector(".v3d-close").addEventListener("click", () => history.state && history.state.v3d ? history.back() : close3d());
     const msg = el.querySelector(".v3d-msg"), stage = el.querySelector(".v3d-stage");
     try {
-      const [[THREE, { OrbitControls }, { GLTFLoader }, { DRACOLoader }], url] = await Promise.all([loadThree(), blobUrl(it.glb)]);
+      const [[THREE, { OrbitControls }, { GLTFLoader }, { DRACOLoader }], url] = await Promise.all([loadThree(), blobUrl(src)]);
       const gltf = await new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/")).loadAsync(url);
       if (!st.alive) return;
       const css = getComputedStyle(document.documentElement);
@@ -1214,13 +1229,35 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       el.querySelector(".v3d-reset").addEventListener("click", home);
       // ワイヤー：なし → 三角（GPUが描く三角形）→ 四角（Blender の辺）→ なし。線は面の上に重ねる。押したときに初めて作る
       const lineMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.45 });
-      const wires = {}, WIRE_NEXT = { off: "tri", tri: "quad", quad: "off" }, WIRE_TEXT = { off: "なし", tri: "三角", quad: "四角" };
+      // 工程Cの確認には四角の線（.edges.bin）がないので、なし ⇔ 三角 だけ
+      const wires = {}, WIRE_NEXT = check ? { off: "tri", tri: "off" } : { off: "tri", tri: "quad", quad: "off" }, WIRE_TEXT = { off: "なし", tri: "三角", quad: "四角" };
       let wireMode = "off";
-      const makeTri = () => {
+      const shown = o => { for (let x = o; x; x = x.parent) if (!x.visible) return false; return true; };
+      const makeTri = () => {   // 見えている物だけ
         const g = new THREE.Group();
-        model.traverse(o => { if (o.isMesh) { const l = new THREE.LineSegments(new THREE.WireframeGeometry(o.geometry), lineMat); o.updateWorldMatrix(true, false); l.applyMatrix4(o.matrixWorld); g.add(l); } });
+        model.traverse(o => { if (o.isMesh && shown(o)) { const l = new THREE.LineSegments(new THREE.WireframeGeometry(o.geometry), lineMat); o.updateWorldMatrix(true, false); l.applyMatrix4(o.matrixWorld); g.add(l); } });
         return g;
       };
+      if (check) {   // 層の切り替え：消す面 ／ 丸める角 ／ 完成形
+        const hint = el.querySelector(".v3d-hint");
+        const showLayer = k => {
+          let n = 0;
+          model.children.forEach(c => {
+            c.visible = c.name.startsWith(k);
+            if (c.visible) c.traverse(o => { if (o.isMesh) n += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
+          });
+          el.querySelectorAll("[data-layer]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.layer === k)));
+          hint.textContent = (CHK_LAYERS.find(x => x[0] === k) || [])[2] || "";
+          el.querySelector(".v3d-foot small").textContent = `${Math.round(n).toLocaleString()} tris`;
+          if (wires.tri) {   // 三角の線は見えている層で作り直す
+            scene.remove(wires.tri);
+            delete wires.tri;
+            if (wireMode === "tri") { wires.tri = makeTri(); scene.add(wires.tri); }
+          }
+        };
+        el.querySelectorAll("[data-layer]").forEach(b => b.addEventListener("click", () => showLayer(b.dataset.layer)));
+        showLayer(CHK_LAYERS[0][0]);
+      }
       const wireBtn = el.querySelector(".v3d-wire");
       wireBtn.textContent = "ワイヤー：なし";
       wireBtn.addEventListener("click", async () => {
