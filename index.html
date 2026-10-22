@@ -396,12 +396,13 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     prep: { acts: ["prep", "fix"], cls: "prepfix", note: { prep: ["工程Cへのメモ（なくてもOK）", "例：扉はギミックにしたい／UVはそのまま"],
       fix: ["作り直してほしいこと", "例：脚をもう少し太く（Blenderで整えた分は _backup に残ります）"] } },
     prep_shelf: { acts: ["prep"], cls: "one", note: { prep: ["工程Cへのメモ（なくてもOK）", "例：扉はギミックにしたい／UVはそのまま"] } },   // 小さいサムネ用（直しは大きいカードで）
-    prep_review: { acts: ["prep_ok", "prep_fix"], cls: "two", note: { prep_fix: ["工程Cへの直し", "例：取っ手の面は消さないで／ガラスは別のテクスチャセットに"] } },
+    prep_review: { acts: ["prep_ok", "prep_fix", "back_ok"], cls: "", note: { prep_fix: ["工程Cへの直し", "例：取っ手の面は消さないで／ガラスは別のテクスチャセットに"] } },
     texturing: { acts: ["back_ok"], cls: "one", note: {} },
     rejected: { acts: ["unreject"], cls: "one", note: {} },
   };
   const BTN_TEXT = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた → 工程Cへ", prep_ok: "OK（確定）", prep_fix: "直して",
     back_ok: "OK済みに戻す（整え直す）", unreject: "確認待ちに戻す" };
+  const BTN_TEXT_IN = { prep_review: { back_ok: "整え直す" } };   // 3つ並ぶところは短く
   const NOTE_REQUIRED = ["fix", "prep_fix"];
   // メモの定型文（押すとメモ欄に足す。◯ は選んだ状態になるので、そのまま数字を打てる）
   const TEMPLATES = {
@@ -413,7 +414,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   function decideUI(it, mode) {
     const m = MODES[mode];
     return `<div class="decide" data-item="${esc(it.id)}" data-mode="${mode}">
-      <div class="btns ${m.cls}">${m.acts.map(a => `<button type="button" class="act-${a}" data-act="${a}">${BTN_TEXT[a]}</button>`).join("")}</div>
+      <div class="btns ${m.cls}">${m.acts.map(a => `<button type="button" class="act-${a}" data-act="${a}">${(BTN_TEXT_IN[mode] || {})[a] || BTN_TEXT[a]}</button>`).join("")}</div>
       <div class="fixbox" hidden>
         <label></label>
         <textarea rows="3"></textarea>
@@ -737,7 +738,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <div class="decide demo-btns" aria-hidden="true" style="border-top:0;padding-top:0">
           <div class="btns one"><button type="button" class="act-prep" tabindex="-1">整えた → 工程Cへ</button></div>
         </div>
-        <p style="font-size:14px"><b>あとから戻す</b>：OKを出した後でも戻せます。<b>OK済み</b>のカードの「直して」で作り直しに戻る（Blenderで整えた .blend は、作り直す前にアイテムのフォルダの <code>_backup</code> に保存されます）。<b>テクスチャ待ち</b>は「OK済みに戻す」でもう一度整えられる。<b>ボツ</b>は「確認待ちに戻す」で復活。どれもラインタブの数字のマスから一覧を開くと押せます。</p>
+        <p style="font-size:14px"><b>あとから戻す</b>：OKを出した後でも戻せます。<b>OK済み</b>のカードの「直して」で作り直しに戻る（Blenderで整えた .blend は、作り直す前にアイテムのフォルダの <code>_backup</code> に保存されます）。<b>工程C確認待ち</b>は「整え直す」、<b>テクスチャ待ち</b>は「OK済みに戻す」で、もう一度Blenderで整えられる（工程Cは元の .blend を書き換えないので、整えた形はそのまま残っている）。<b>ボツ</b>は「確認待ちに戻す」で復活。どれもラインタブの数字のマスから一覧を開くと押せます。</p>
         <p style="font-size:14px"><b>整えた</b>（OK済みのもの）：Blender で整え終わったら押す。メモ欄に「扉はギミックにしたい」「UVはそのまま」「ビスも丸めて」など工程Cへの指示を書けます（なくてもOK）。ローポリのベベルは、入れたい所だけ自分で入れて<b>適用してから</b>押す（モディファイアのままだと工程Cで外れる）。</p>
       </section>
 
@@ -1050,7 +1051,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     "30_feedback": { label: "直し待ち", hint: "次のライン（または「今すぐ直す」）で作り直します" },
     "40_approved": { label: "OK済み", hint: "Blenderで整えたら「整えた」を押すと、工程Cが仕上げ前処理をします。形から作り直したいときは「直して」", mode: "prep" },
     "50_prep": { label: "工程C待ち", hint: "次のライン（または「今すぐ」）で工程Cが仕上げ前処理をします" },
-    "55_prep_review": { label: "工程C確認待ち", hint: "消す面とパーツ分けを確認して OK（確定）／直して" },
+    "55_prep_review": { label: "工程C確認待ち", hint: "消す面とパーツ分けを確認して OK（確定）／直して。Blenderで整え直したいときは「整え直す」" },
     "60_texturing": { label: "テクスチャ待ち", hint: "_prep フォルダの FBX を Substance Painter へ。もう一度整えたいときは「OK済みに戻す」", mode: "texturing" },
     "99_rejected": { label: "ボツ", hint: "作らないことにしたもの。やっぱり作るなら「確認待ちに戻す」", mode: "rejected" },
   };
