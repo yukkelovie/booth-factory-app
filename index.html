@@ -498,6 +498,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     const p = it.prep || {};
     return `<article class="card" id="item-${esc(it.id)}">
       <header class="card-head"><div><h3>${esc(short(it))}</h3><p class="code">${esc(it.id)} ・ 工程Cの仮の結果</p></div></header>
+      ${(p.warnings || []).length ? `<div class="banner err">${p.warnings.map(w => `<p>⚠ ${esc(w)}</p>`).join("")}</div>` : ""}
       ${it.img.hidden ? `<h4>消す面（赤）</h4>${pic(it.img.hidden, "削除面プレビュー")}<p class="legend">赤＝消す（部品に完全に埋まった面）／オレンジ＝一部隠れ（残す）／半透明＝残す</p>` : ""}
       <div class="chips">
         <span class="chip warn">消す ${p.removed ?? 0} 面</span>
