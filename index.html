@@ -64,7 +64,7 @@ img { max-width: 100%; display: block; }
 
 main { max-width: 720px; margin: 0 auto;
   padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 32px) max(16px, env(safe-area-inset-left, 0px));
-  display: grid; gap: 22px; }
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
 h2 { font-size: 18px; font-weight: 900; margin: 6px 0 -10px; }
 h2 small { font-family: var(--f-data); font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 6px; }
 h4 { font-size: 13px; margin: 6px 0 0; color: var(--muted); letter-spacing: .04em; }
@@ -118,6 +118,49 @@ code { font-family: var(--f-data); font-size: .88em; }
 .chip { font-family: var(--f-data); font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; }
 .chip.ok { color: var(--ok); } .chip.warn { color: var(--warn); font-weight: 700; } .chip.plain { color: var(--muted); }
 .btn.v3d-open { width: 100%; min-height: 44px; }
+/* 確認タブの一番上のまとめ */
+.sum { margin: 4px 0 8px; }
+.sum-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.sum-tile { display: grid; gap: 0; justify-items: center; padding: 8px 2px; min-height: 60px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--muted); font: inherit; }
+.sum-tile b { font-family: var(--f-data); font-size: 22px; line-height: 1.2; color: var(--ink); }
+.sum-tile span { font-size: 11px; white-space: nowrap; }
+.sum-tile.you:not(.zero) { background: var(--mark); border-color: var(--mark); color: var(--mark-ink); }
+.sum-tile.you:not(.zero) b { color: var(--mark-ink); }
+.sum-tile.zero b { color: var(--muted); font-weight: 500; }
+.sum-prog { margin-top: 10px; }
+.sum-prog .bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.sum-prog .bar i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, var(--mark) 0 6px, var(--ink) 6px 12px); }
+.sum-prog p { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+/* 4面図（タップで3D） */
+.sheet { position: relative; cursor: pointer; }
+.sheet .tap3d { position: absolute; right: 8px; bottom: 8px; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  background: var(--ink); color: var(--bg); opacity: .85; pointer-events: none; }
+/* 前後比較：前の版の上に今の版を重ね、--x より右だけ今の版を見せる */
+.cmp { position: relative; margin-top: 8px; }
+.cmp .pic { margin: 0 !important; aspect-ratio: 1; }
+.cmp-top { position: absolute; inset: 0; clip-path: inset(0 0 0 var(--x)); }
+.cmp-line { position: absolute; top: 0; bottom: 0; left: var(--x); width: 2px; margin-left: -1px; background: var(--mark); }
+.cmp-tag { position: absolute; top: 8px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--ink); color: var(--bg); }
+.cmp-tag.l { left: 8px; } .cmp-tag.r { right: 8px; background: var(--mark); color: var(--mark-ink); }
+.cmp-range { width: 100%; margin: 8px 0 0; accent-color: var(--mark); }
+/* 歩み */
+.hist { list-style: none; margin: 8px 0 0; padding: 0 0 0 12px; border-left: 2px solid var(--line); font-size: 13px; }
+.hist li { position: relative; padding: 2px 0 6px 8px; display: flex; gap: 10px; }
+.hist li::before { content: ""; position: absolute; left: -18px; top: 9px; width: 8px; height: 8px; border-radius: 50%; background: var(--mark); }
+.hist time { font-family: var(--f-data); font-size: 12px; color: var(--muted); white-space: nowrap; }
+/* メモの定型文 */
+.tpl { display: flex; flex-wrap: wrap; gap: 6px; }
+.tpl:empty { display: none; }
+.chip-btn { border: 1px dashed var(--line); background: transparent; border-radius: 999px; padding: 4px 10px; min-height: 32px;
+  font-size: 12px; cursor: pointer; color: var(--ink); }
+/* 段の一覧のカルーセル（横スワイプで次のカード） */
+.carousel { display: flex; align-items: flex-start; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+  margin: 0 -16px; padding: 0 16px 4px; scrollbar-width: none; overscroll-behavior-x: contain; }
+.carousel::-webkit-scrollbar { display: none; }
+.carousel > .card { flex: 0 0 100%; min-width: 0; scroll-snap-align: center; margin: 0; }
+.swipe-hint { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
+.swipe-hint .pos { font-family: var(--f-data); color: var(--ink); }
 .path { display: flex; align-items: center; gap: 8px; }
 .path code { flex: 1; min-width: 0; font-family: var(--f-data); font-size: 11px; color: var(--muted); overflow-wrap: anywhere; line-height: 1.4; }
 .path .btn { flex: none; padding: 6px 12px; min-height: 36px; font-weight: 400; }
@@ -360,6 +403,12 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   const BTN_TEXT = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた → 工程Cへ", prep_ok: "OK（確定）", prep_fix: "直して",
     back_ok: "OK済みに戻す（整え直す）", unreject: "確認待ちに戻す" };
   const NOTE_REQUIRED = ["fix", "prep_fix"];
+  // メモの定型文（押すとメモ欄に足す。◯ は選んだ状態になるので、そのまま数字を打てる）
+  const TEMPLATES = {
+    fix: ["もう少し太く", "もう少し細く", "全体を一回り大きく", "高さを◯cmに", "実物の写真みたいに", "めり込みをなくして", "色を変えて："],
+    prep: ["UVはそのまま", "扉をギミックに", "ビスも丸めて", "これは地面に固定", "底を開けて中空に"],
+    prep_fix: ["この面は消さないで", "丸めを弱く", "丸めを強く", "ガラスは別のセットに", "これは地面に固定"],
+  };
 
   function decideUI(it, mode) {
     const m = MODES[mode];
@@ -368,6 +417,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       <div class="fixbox" hidden>
         <label></label>
         <textarea rows="3"></textarea>
+        <div class="tpl" aria-label="よく使う言い回し"></div>
         <div class="photo-row">
           <input type="file" accept="image/*" multiple hidden>
           <button type="button" class="btn add-photo">写真を追加</button>
@@ -381,22 +431,44 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     </div>`;
   }
 
+  // たためる箇条書き（中身があるときだけ）。open で最初から開く
+  const fold = (title, xs, open) => xs && xs.length ? `<details class="sub"${open ? " open" : ""}><summary>${title}（${xs.length}）</summary><ul>${xs.map(x => `<li>${md(x)}</li>`).join("")}</ul></details>` : "";
+  const fmtAt = s => { const m = /^\d{4}-(\d{2})-(\d{2}) (\d{2}:\d{2})/.exec(s || ""); return m ? `${+m[1]}/${+m[2]} ${m[3]}` : esc(s); };
+
+  // 4面図。押すと3Dが開く（GLB があるとき）
+  const sheetPic = it => it.img.sheet
+    ? `<div class="sheet"${it.glb ? ` data-v3d="${esc(it.id)}" role="button" tabindex="0" aria-label="${esc(short(it))} を3Dで見る"` : ""}>${pic(it.img.sheet, it.id + " の4面図（正面・左側面・上面・パース）")}${it.glb ? '<span class="tap3d">タップで3D</span>' : ""}</div>
+       <p class="legend">左上 正面 ／ 右上 左側面 ／ 左下 上面 ／ 右下 パース</p>`
+    : '<p class="muted">画像なし</p>';
+
+  // 直す前と比べる：前の版の上に今の版を重ねて、スライダーで境目を動かす
+  const compare = it => it.img.sheet_prev ? `<details class="sub cmp-box"><summary>直す前と比べる（前の版 ${fmtAt(it.prev_built)}）</summary>
+      <div class="cmp" style="--x:50%">${pic(it.img.sheet_prev, "前の版の4面図")}<div class="cmp-top">${pic(it.img.sheet, "今の4面図")}</div><i class="cmp-line"></i>
+        <span class="cmp-tag l">前</span><span class="cmp-tag r">今</span></div>
+      <input type="range" class="cmp-range" min="0" max="100" value="50" aria-label="前と今の境目">
+    </details>` : "";
+
+  // アイテムの歩み（作成・返事・作り直し・工程C）
+  const historyList = it => (it.history || []).length ? `<details class="sub"><summary>歩み（${it.history.length}）</summary>
+      <ol class="hist">${it.history.map(e => `<li><time>${fmtAt(e.at)}</time><span>${esc(e.what)}</span></li>`).join("")}</ol></details>` : "";
+
   function card(it, mode) {
     const d = it.dims || [0, 0, 0];
     const fb = it.feedback ? `<details class="sub"><summary>feedback.md</summary><pre>${esc(it.feedback)}</pre></details>` : "";
     return `<article class="card" id="item-${esc(it.id)}">
       <header class="card-head"><div><h3>${esc(it.name)}</h3><p class="code">${esc(it.id)}</p></div>
         <p class="dims">${d[0].toFixed(2)}<span>×</span>${d[1].toFixed(2)}<span>×</span>${d[2].toFixed(2)}<small> m</small></p></header>
-      ${it.img.sheet ? pic(it.img.sheet, it.id + " の4面図（正面・左側面・上面・パース）") + '<p class="legend">左上 正面 ／ 右上 左側面 ／ 左下 上面 ／ 右下 パース</p>' : '<p class="muted">画像なし</p>'}
+      ${sheetPic(it)}
       <div class="chips">
         <span class="chip ${it.tris <= it.budget ? "ok" : "warn"}">ポリ ${it.tris.toLocaleString()} / ${it.budget.toLocaleString()}</span>
         <span class="chip ${it.floating ? "warn" : "ok"}">${it.floating ? "浮き " + it.floating : "浮きなし"}</span>
         <span class="chip plain">マテリアル ${esc(it.materials ?? "—")}</span>
       </div>
-      ${v3dBtn(it)}
-      ${list("見てほしい点", it.look)}
-      ${list("工程Bで直したこと", it.fixed)}
       ${mode ? decideUI(it, mode) : ""}
+      ${fold("見てほしい点", it.look, mode === "review")}
+      ${compare(it)}
+      ${fold("工程Bで直したこと", it.fixed, false)}
+      ${historyList(it)}
       ${it.img.uv || it.img.uv_layout ? `<details class="sub"><summary>UV（展開図・チェッカー）</summary>
         ${it.img.uv_layout ? `<h4>展開図</h4>${pic(it.img.uv_layout, "UV展開図")}` : ""}
         ${it.img.uv ? `<h4>チェッカー（市松模様がゆがんでいなければOK）</h4>${pic(it.img.uv, "UVチェッカー")}` : ""}
@@ -459,11 +531,25 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   let data = null, inbox = {}, loadErr = null;
   const byStage = s => data ? data.items.filter(i => i.stage === s) : [];
 
+  // 確認タブの一番上：今やること（あなたの番＝黄色）と工場の番、テーマの進み具合。マスを押すとその段の一覧
+  function summary() {
+    const tiles = [["20_ready", "確認待ち", true], ["55_prep_review", "C確認", true], ["40_approved", "整え待ち", true],
+      ["30_feedback", "直し待ち", false], ["60_texturing", "塗り待ち", false]];
+    const done = data.ideas_done || 0, total = data.ideas_total || 0;
+    return `<section class="sum" aria-label="今の状況">
+      <div class="sum-tiles">${tiles.map(([s, l, you]) => { const n = byStage(s).length;
+        return `<button type="button" class="sum-tile${you ? " you" : ""}${n ? "" : " zero"}" data-open-stage="${s}" aria-label="${l} ${n}件の一覧"><b>${n}</b><span>${l}</span></button>`; }).join("")}</div>
+      ${total ? `<div class="sum-prog"><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}"><i style="width:${Math.round(done / total * 100)}%"></i></div>
+        <p>${esc(data.theme)}：作ったもの ${done} / ${total} 点（残り ${total - done}）</p></div>` : ""}
+    </section>`;
+  }
+
   function renderReview() {
     const el = document.getElementById("view-review");
     if (!data) { el.innerHTML = noData(); return; }
     const ready = byStage("20_ready"), prep = byStage("55_prep_review"), ok = byStage("40_approved");
     el.innerHTML = `
+      ${summary()}
       ${data.exhausted ? '<p class="banner">テーマのアイデアが尽きました。次のテーマを決めてください。</p>' : ""}
       <h2>確認待ち <small>${ready.length} 点</small></h2>
       ${ready.map(it => card(it, "review")).join("") || '<p class="muted">確認待ちはありません。次は朝7時のラインで届きます。</p>'}
@@ -616,7 +702,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <span class="tag" style="left:2%;top:52%">上面</span><span class="tag" style="left:52%;top:52%">パース</span>
         </div>
         <p class="muted" style="font-size:12px">例：${esc(ex.name)}</p>` : '<p class="muted">（データを読み込むと、ここに本物の4面図が出ます）</p>'}
-        <p><b>4面図</b>：正面・左側面・上面・パース（斜めから）の4方向。形と比率をここで見ます。ガラスは半透明で描くので、後ろの部品も見えます。</p>
+        <p><b>4面図</b>：正面・左側面・上面・パース（斜めから）の4方向。形と比率をここで見ます。ガラスは半透明で描くので、後ろの部品も見えます。<b>4面図を押すと3D</b>が開きます（右下の「タップで3D」）。</p>
+        <p style="font-size:14px"><b>確認タブの一番上</b>：今やることの件数（黄色＝あなたの番：確認待ち・C確認・整え待ち／白＝工場の番：直し待ち・塗り待ち）と、テーマの進み具合（作ったもの / アイデアの数）。マスを押すとその段の一覧へ。</p>
         <div class="chips">
           <span class="chip ok">ポリ 476 / 6,000</span><span class="chip ok">浮きなし</span><span class="chip plain">マテリアル 6</span>
         </div>
@@ -624,8 +711,10 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><b>ポリ</b>：三角形の数 / 予算。予算はサイズで決まる（1m未満 1,500、2.5m未満 3,000、それ以上 6,000）。超えると赤</li>
           <li><b>浮き</b>：どこにもくっついていない部品の数。0 が正解。あると赤</li>
           <li><b>マテリアル</b>：部品の色分けの数。工程Cで ColorID（Substance の ID マップ用）になるだけで、最終的なマテリアル数ではない。多くても問題なし。最終的には工程Cで 1〜2 個＋ガラス・光るものなどに分ける</li>
-          <li><b>見てほしい点</b>：工程Bが「ここは判断してほしい」と書いたこと。返事の参考に</li>
-          <li><b>工程Bで直したこと</b>：検品で自動で直したこと</li>
+          <li><b>見てほしい点</b>（たためる）：工程Bが「ここは判断してほしい」と書いたこと。確認待ちでは最初から開いている</li>
+          <li><b>直す前と比べる</b>（たためる）：作り直したものは、前の版の4面図と今の4面図を重ねて、スライダーで境目を動かして見比べられる（左＝前、右＝今）</li>
+          <li><b>工程Bで直したこと</b>（たためる）：検品で自動で直したこと</li>
+          <li><b>歩み</b>（たためる）：工場が作った日・送った返事・作り直し・工程C を日付順に</li>
           <li><b>ファイルの場所</b>（カードの一番下）：PCで開く .blend のパス。PCのブラウザなら「コピー」で貼り付けられる。工程Cの後は _prep の .blend。いつも開くなら PC の <code>_作業台</code> フォルダのほうが早い（<a href="#h-faq">よくある質問</a>）</li>
           <li><b>3Dで回して見る</b>：押すと全画面で3Dが開く。1本指で回転、ピンチでズーム、2本指で移動。「ワイヤー」は押すたびに なし → 三角 → 四角 と切り替わる（三角＝GPU・Unityが実際に描く三角形、四角＝Blender で見えるのと同じ辺）。「視点を戻す」で最初の向きに。閉じるはスマホの「戻る」でもOK。4面図では見えない裏側や隙間の確認に。工程C確認待ちのカードでは、自分で整えた .blend の形が出る（工程Cの仮の結果ではない）。ボツのものには出ない</li>
           <li><b>UV</b>（たためる）：<b>展開図</b>（UVの切り開き方）と<b>チェッカー</b>（市松模様を貼った絵。ゆがんでいなければ OK）。工程Cの後は、テクスチャセットごとの展開図が見られる（工程C確認待ちのカード・テクスチャ待ちの一覧）。Print で始まるセットは写真・ラベル用で、上向きのまま並ぶ</li>
@@ -639,7 +728,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         </div>
         <ul style="font-size:14px">
           <li><b>OK</b>：このままで良い。OK済みに進む</li>
-          <li><b>直して</b>：押すとメモ欄が開く。直してほしいことを書いて「送る」。<b>写真を追加</b>で参考写真やスクショも付けられる（4枚まで）</li>
+          <li><b>直して</b>：押すとメモ欄が開く。直してほしいことを書いて「送る」。メモ欄の下の<b>よく使う言い回し</b>（「もう少し太く」「高さを◯cmに」など）を押すと足せる（◯ は選んだ状態になるので、そのまま数字を打てる）。<b>写真を追加</b>で参考写真やスクショも付けられる（4枚まで）</li>
           <li><b>ボツ</b>：作らない。ボツ置き場へ</li>
         </ul>
         <div class="sent" aria-hidden="true"><p>送信済み：直して「支柱をもう少し太く」 → 5分以内に振り分け</p><button type="button" class="btn" tabindex="-1" style="pointer-events:none">取り消す</button></div>
@@ -687,7 +776,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <tr><th>ボツ</th><td>作らないことにしたもの</td></tr>
         </table>
         <p class="muted" style="font-size:13px">太字があなたの出番。確認タブの赤い数字は、確認待ち＋C確認待ちの件数です。</p>
-        <p style="font-size:14px">ラインタブの<b>数字のマスを押すと</b>、その段に溜まっているものの一覧が開きます。どれも確認待ちと同じ大きいカード（4面図・ポリ数・直した履歴・UV）で見られて、その段でできる操作（OK・整えた など）もそこで押せます。小さいサムネ（OK済みなど）を押しても、そのアイテムのカードに飛びます。「← 戻る」で元の画面へ。</p>
+        <p style="font-size:14px">ラインタブの<b>数字のマスを押すと</b>、その段に溜まっているものの一覧が開きます。どれも確認待ちと同じ大きいカード（4面図・ポリ数・直した履歴・UV）で見られて、その段でできる操作（OK・整えた など）もそこで押せます。2点以上あるときは<b>横にスワイプ</b>で次のカードへ（上に「3 / 7」のように今の位置が出ます）。</p><p style="font-size:14px">小さいサムネ（OK済みなど）を押しても、そのアイテムのカードに飛びます。「← 戻る」で元の画面へ。</p>
       </section>
 
       <section class="help-sec" id="h-faq">
@@ -868,11 +957,21 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           const f = b.querySelector(".fixbox");
           f.querySelector("label").textContent = mode.note[act][0];
           f.querySelector("textarea").placeholder = mode.note[act][1];
+          f.querySelector(".tpl").innerHTML = (TEMPLATES[act] || []).map(t => `<button type="button" class="chip-btn">${esc(t)}</button>`).join("");
           f.hidden = !f.hidden; if (!f.hidden) f.querySelector("textarea").focus();
           return;
         }
         send(act, "");
       }));
+      b.querySelector(".tpl").addEventListener("click", e => {
+        const c = e.target.closest(".chip-btn");
+        if (!c) return;
+        const ta = b.querySelector("textarea"), t = c.textContent, v = ta.value.trimEnd();
+        ta.value = v ? v + (/[。、！？]$/.test(v) ? "" : "。") + t : t;
+        ta.focus();
+        const q = ta.value.lastIndexOf("◯");
+        if (q >= ta.value.length - t.length) ta.setSelectionRange(q, q + 1); else ta.setSelectionRange(ta.value.length, ta.value.length);
+      });
       b.querySelector(".add-photo").addEventListener("click", () => input.click());
       input.addEventListener("change", async () => {
         const files = [...input.files].slice(0, MAX_PHOTOS - pending.get(item).length);
@@ -963,9 +1062,9 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     curStage = stage;
     switchTab("stage");
     renderStage();
-    if (item) {
+    if (item) {   // カルーセルの中のそのカードへ（横に送る）
       const t = document.querySelector(`#view-stage #item-${CSS.escape(item)}`);
-      if (t) t.scrollIntoView();
+      if (t) t.parentElement.scrollLeft = t.offsetLeft - t.parentElement.offsetLeft - 16;
     }
   }
 
@@ -981,8 +1080,16 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         `<ul class="queue">${data.todo.map(t => `<li><span>${esc(t.name)}</span><code>${esc(t.code)}</code></li>`).join("") || "<li><span>待ち行列は空です</span></li>"}</ul>`;
     } else {
       const its = byStage(curStage);
-      el.innerHTML = head(its.length) +
-        (its.map(it => curStage === "55_prep_review" ? prepCard(it) : card(it, info.mode)).join("") || '<p class="muted">ここには何もありません。</p>');
+      // 2点以上は横スワイプで次のカードへ（カルーセル）
+      el.innerHTML = head(its.length) + (its.length
+        ? `${its.length > 1 ? `<p class="swipe-hint" aria-live="polite"><span class="pos">1 / ${its.length}</span> ・ 横にスワイプで次へ</p>` : ""}
+           <div class="carousel">${its.map(it => curStage === "55_prep_review" ? prepCard(it) : card(it, info.mode)).join("")}</div>`
+        : '<p class="muted">ここには何もありません。</p>');
+      const car = el.querySelector(".carousel"), pos = el.querySelector(".swipe-hint .pos");
+      if (car && pos) car.addEventListener("scroll", () => {
+        const step = car.firstElementChild ? car.firstElementChild.offsetWidth + 12 : car.clientWidth;
+        pos.textContent = `${Math.min(its.length, Math.round(car.scrollLeft / step) + 1)} / ${its.length}`;
+      }, { passive: true });
       wireDecide(el);
       hydrateImgs(el);
     }
@@ -1149,6 +1256,16 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     document.body.style.overflow = "";
   }
   addEventListener("popstate", () => close3d());
+  // 前後比較のスライダー
+  document.addEventListener("input", e => {
+    if (!e.target.classList.contains("cmp-range")) return;
+    e.target.closest(".cmp-box").querySelector(".cmp").style.setProperty("--x", e.target.value + "%");
+  });
+  // 4面図（タップで3D）をキーボードでも開けるように
+  document.addEventListener("keydown", e => {
+    const s = e.target.closest && e.target.closest(".sheet[data-v3d]");
+    if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); s.click(); }
+  });
   addEventListener("keydown", e => { if (e.key === "Escape" && v3d) history.state && history.state.v3d ? history.back() : close3d(); });
 
   function renderAll() {
