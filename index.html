@@ -446,6 +446,11 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
        <p class="legend">左上 正面 ／ 右上 左側面 ／ 左下 上面 ／ 右下 パース</p>`
     : '<p class="muted">画像なし</p>';
 
+  // 工程Cの確認画像。押すと3D確認がその層で開く（消す面／丸める角／完成形）
+  const chkPic = (it, path, alt, layer) => it.prep && it.prep.check_glb
+    ? `<div class="sheet" data-v3d-check="${esc(it.id)}" data-layer-start="${layer}" role="button" tabindex="0" aria-label="${esc(alt)}を3Dで見る">${pic(path, alt)}<span class="tap3d">タップで3D</span></div>`
+    : pic(path, alt);
+
   // 直す前と比べる：前の版の上に今の版を重ねて、スライダーで境目を動かす
   const compare = it => it.img.sheet_prev ? `<details class="sub cmp-box"><summary>直す前と比べる（前の版 ${fmtAt(it.prev_built)}）</summary>
       <div class="cmp" style="--x:50%">${pic(it.img.sheet_prev, "前の版の4面図")}<div class="cmp-top">${pic(it.img.sheet, "今の4面図")}</div><i class="cmp-line"></i>
@@ -503,7 +508,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     return `<article class="card" id="item-${esc(it.id)}">
       <header class="card-head"><div><h3>${esc(short(it))}</h3><p class="code">${esc(it.id)} ・ 工程Cの仮の結果</p></div></header>
       ${(p.warnings || []).length ? `<div class="banner err">${p.warnings.map(w => `<p>⚠ ${esc(w)}</p>`).join("")}</div>` : ""}
-      ${it.img.hidden ? `<h4>消す面（赤）</h4>${pic(it.img.hidden, "削除面プレビュー")}<p class="legend">赤＝消す（部品に完全に埋まった面）／オレンジ＝一部隠れ（残す）／半透明＝残す</p>` : ""}
+      ${it.img.hidden ? `<h4>消す面（赤）</h4>${chkPic(it, it.img.hidden, "削除面プレビュー", "CHK_hidden")}<p class="legend">赤＝消す（部品に完全に埋まった面）／オレンジ＝一部隠れ（残す）／半透明＝残す</p>` : ""}
       <div class="chips">
         <span class="chip warn">消す ${p.removed ?? 0} 面</span>
         <span class="chip plain">low ${(p.low_tris || 0).toLocaleString()} tris</span>
@@ -513,10 +518,10 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       </div>
       ${p.check_glb ? `<button type="button" class="btn primary v3d-open" data-v3d-check="${esc(it.id)}">3Dで確認（消す面／丸める角／完成形）</button>` : ""}
       ${v3dBtn(it, "（整えた .blend）")}
-      ${it.img.sets ? `<h4>パーツ分け・テクスチャセット（色＝セット）</h4>${pic(it.img.sets, "テクスチャセット色分け")}` : ""}
+      ${it.img.sets ? `<h4>パーツ分け・テクスチャセット（色＝セット）</h4>${chkPic(it, it.img.sets, "テクスチャセット色分け", "CHK_high")}` : ""}
       ${(p.objects || []).length ? `<h4>オブジェクト</h4><ul>${p.objects.map(o => `<li><code>${esc(o.name)}</code> ${o.tris.toLocaleString()} tris ・ ${esc(o.sets.join(" / "))}</li>`).join("")}</ul>` : ""}
       ${Object.keys(p.sets || {}).length ? `<h4>テクスチャセット</h4><ul>${Object.entries(p.sets).map(([s, os]) => `<li><b>${esc(s)}</b>：${esc(os.join("、"))}</li>`).join("")}</ul>` : ""}
-      ${it.img.bevel ? `<h4>ハイポリで丸める角（オレンジ）</h4>${pic(it.img.bevel, "ハイポリで丸める角")}<p class="legend">オレンジ＝丸める角（見やすいよう太めに描いてある）。灰色のままの部品は丸めない</p>` : ""}
+      ${it.img.bevel ? `<h4>ハイポリで丸める角（オレンジ）</h4>${chkPic(it, it.img.bevel, "ハイポリで丸める角", "CHK_bevel")}<p class="legend">オレンジ＝丸める角（見やすいよう太めに描いてある）。灰色のままの部品は丸めない</p>` : ""}
       ${(p.bevel || []).length ? `<details class="sub"><summary>部品ごとの丸め幅（${p.bevel.length} 行）</summary><ul>${p.bevel.map(x => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}
       ${uvSets(it)}
       ${list("確認してほしい点", p.look)}
@@ -797,7 +802,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <dt>「書き込みの権限がありません」と出る</dt><dd>鍵が「読むだけ」で作られています。GitHub の Fine-grained tokens でその鍵を開いて Edit → Contents を Read and write にして Update。鍵の貼り直しはいりません。</dd>
           <dt>スマホを無くした</dt><dd>GitHub の Settings → Developer settings → Fine-grained tokens で、スマホ用のトークンを Delete してください。</dd>
           <dt>ハイポリの角の丸め方を変えたい</dt><dd>工程Cは、部品ごとに50°以上曲がった角（八角形の丸棒の45°は丸めない）を、部品の肉厚の8%（1〜8mm）の幅で丸めます。全体が3cm未満の小物（ビス頭など）は丸めません。同じグループ（ひとつの組み立て）で触れ合っている部品（脚とレール、縞のバーなど）は1つにつなげてから丸めるので、継ぎ目に溝や段はできません。違う部品との境目（埋まっている面の辺、部品が乗っている辺）も丸めません（境目を丸めると、法線マップに溝の線が出るため）。地面に接する辺は、ポール・街灯のように<b>地面に固定</b>されている物は丸めず、ベンチ・自販機のように<b>置いてある</b>物は丸めます（どちらかはカードのチップに出ます。違っていたら「直して」のメモで「これは固定」「これは置いてある」と書いてください）。工程C確認待ちのカードの「ハイポリで丸める角」で、オレンジの所が丸まります。<br>変えたいときは2通り：①Blenderで整えるとき、丸めたい辺にだけ<b>ベベルウェイト</b>を付ける（編集モードで辺を選んで、サイドバー［N］の「アイテム」タブにあるベベルウェイト、または 辺メニュー →「辺のベベルウェイト」）。印を付けた部品は、印の辺だけ丸まる（1.0＝ふつうの幅、0.5＝半分）。②「整えた」や「直して」のメモに「ビスも丸めて」「扉は丸めないで」「全体に丸みを強く」などと書く。</dd>
-          <dt>消す面や丸める角を3Dで見たい</dt><dd>工程C確認待ちのカードの「3Dで確認（消す面／丸める角／完成形）」を押すと、上のボタンで3つを切り替えて回して見られます。<b>消す面</b>：赤＝消す、オレンジ＝一部だけ隠れる（残す）、半透明＝残す。<b>丸める角</b>：オレンジ＝ハイポリで丸める角（太めに描いてある）。<b>完成形</b>：ハイポリ。画像では見えにくい底や内側（重しの底面、コーンの中など）の確認に。</dd>
+          <dt>消す面や丸める角を3Dで見たい</dt><dd>工程C確認待ちのカードの「3Dで確認（消す面／丸める角／完成形）」を押すと、上のボタンで3つを切り替えて回して見られます。カードの「消す面」「丸める角」「パーツ分け」の画像を押しても、それぞれの層で開きます。<b>消す面</b>：赤＝消す、オレンジ＝一部だけ隠れる（残す）、半透明＝残す。<b>丸める角</b>：オレンジ＝ハイポリで丸める角（太めに描いてある）。<b>完成形</b>：ハイポリ。画像では見えにくい底や内側（重しの底面、コーンの中など）の確認に。</dd>
           <dt>重しや蓋など、取り外せる部品は？</dt><dd>載せてある・はめてあるだけで外せる部品（コーンの重し・コーンバー、蓋、置き物など）は、工程Cが「取り外せる部品」として扱うと、ほかの部品と当たっている面を消さずに残し、そこの角も丸めます（外したときに見えるため）。工程Cが判断できないこともあるので、「整えた」のメモに「重しとバーは取り外せる部品」のように書いておくと確実です。</dd>
           <dt>縞のバーみたいに色の境目がある物は？</dt><dd>ローポリでは色の境目で分割しません（同じ断面でつないだ継ぎ目は頂点を1つにまとめて線を消す）。色はテクスチャで塗ります。黒と黄色などの色分けのマスク（ID マップ）は、ハイポリには境目が残っているので、ハイポリの ColorID から焼けます。長い筒はUVが細長くなりすぎないよう、色とは関係ない所で何か所か切ってあります。</dd>
           <dt>ローポリのスムーズは？</dt><dd>工程Cが、全部の面をスムーズにして50°以上曲がった辺だけ角にする「自動スムーズ」をかけ直します。整えるときにスムーズが外れても大丈夫です。触ってほしくないときはメモに「スムーズはそのまま」と書いてください。</dd>
@@ -1118,7 +1123,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     const v = e.target.closest("[data-v3d]");
     if (v && data) { const it = data.items.find(i => i.id === v.dataset.v3d); if (it && it.glb) open3d(it); }
     const vc = e.target.closest("[data-v3d-check]");
-    if (vc && data) { const it = data.items.find(i => i.id === vc.dataset.v3dCheck); if (it && it.prep && it.prep.check_glb) open3d(it, true); }
+    if (vc && data) { const it = data.items.find(i => i.id === vc.dataset.v3dCheck); if (it && it.prep && it.prep.check_glb) open3d(it, vc.dataset.layerStart || true); }
   });
 
   // ---------------------------------------------------------------- 3Dビューア（glb/<Item>.glb、Draco圧縮）
@@ -1154,15 +1159,16 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     ["CHK_bevel", "丸める角", "オレンジ＝ハイポリで丸める角（見やすいよう太めに描いてある）"],
     ["CHK_high", "完成形", "ハイポリ（テクスチャセットの色）"]];
 
-  async function open3d(it, check) {   // check＝工程Cの3D確認（消す面／丸める角／完成形）
+  async function open3d(it, check) {   // check＝工程Cの3D確認（消す面／丸める角／完成形）。層の名前なら、その層で開く
     if (v3d) close3d();
     const src = check ? it.prep.check_glb : it.glb;
+    const start = typeof check === "string" && CHK_LAYERS.some(x => x[0] === check) ? check : CHK_LAYERS[0][0];
     const el = document.createElement("div");
     el.className = "v3d";
     el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", short(it) + " の3D");
     el.innerHTML = `<div class="v3d-head"><h3>${esc(short(it))}${check ? " ・ 工程Cの確認" : ""}</h3><button type="button" class="btn v3d-close">閉じる</button></div>
-      ${check ? `<div class="v3d-layers" role="group" aria-label="見るもの">${CHK_LAYERS.map(([k, l], i) => `<button type="button" class="btn" data-layer="${k}" aria-pressed="${i === 0}">${l}</button>`).join("")}</div>` : ""}
-      <div class="v3d-stage"><p class="v3d-msg">読み込み中…</p><p class="v3d-hint">${check ? esc(CHK_LAYERS[0][2]) : "1本指で回転・ピンチでズーム・2本指で移動"}</p></div>
+      ${check ? `<div class="v3d-layers" role="group" aria-label="見るもの">${CHK_LAYERS.map(([k, l]) => `<button type="button" class="btn" data-layer="${k}" aria-pressed="${k === start}">${l}</button>`).join("")}</div>` : ""}
+      <div class="v3d-stage"><p class="v3d-msg">読み込み中…</p><p class="v3d-hint">${check ? esc(CHK_LAYERS.find(x => x[0] === start)[2]) : "1本指で回転・ピンチでズーム・2本指で移動"}</p></div>
       <div class="v3d-foot"><small></small>
         <button type="button" class="btn v3d-wire" aria-pressed="false">ワイヤー</button><button type="button" class="btn v3d-reset">視点を戻す</button></div>`;
     document.body.appendChild(el);
@@ -1256,7 +1262,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           }
         };
         el.querySelectorAll("[data-layer]").forEach(b => b.addEventListener("click", () => showLayer(b.dataset.layer)));
-        showLayer(CHK_LAYERS[0][0]);
+        showLayer(start);
       }
       const wireBtn = el.querySelector(".v3d-wire");
       wireBtn.textContent = "ワイヤー：なし";
@@ -1305,7 +1311,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   });
   // 4面図（タップで3D）をキーボードでも開けるように
   document.addEventListener("keydown", e => {
-    const s = e.target.closest && e.target.closest(".sheet[data-v3d]");
+    const s = e.target.closest && e.target.closest(".sheet[data-v3d], .sheet[data-v3d-check]");
     if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); s.click(); }
   });
   addEventListener("keydown", e => { if (e.key === "Escape" && v3d) history.state && history.state.v3d ? history.back() : close3d(); });
