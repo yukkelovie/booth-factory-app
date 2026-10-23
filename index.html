@@ -584,16 +584,32 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     const el = document.getElementById("view-line");
     if (!data) { el.innerHTML = noData(); return; }
     const counts = [[data.todo.length, "待ち行列", "todo"], ...data.stages.map(s => [byStage(s.id).length, s.label, s.id])];
-    const sections = [["30_feedback", "直し待ち", "翌朝7:00の工程Aが作り直します"], ["10_blockout", "工程A済み", "工程Bの検品待ち"],
+    const sections = [["30_feedback", "直し待ち", "翌朝7:00の工程Aが作り直します（1回に3件まで。古い順）"], ["10_blockout", "工程A済み", "工程Bの検品待ち"],
       ["50_prep", "工程C待ち", "翌朝7:00の工程Cで、見えない面の削除・パーツ分け・UV・FBX書き出しを仮でやります"],
       ["60_texturing", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ"], ["99_rejected", "ボツ", ""]];
     el.innerHTML = runPanel() + `
       <ol class="flow" aria-label="ラインの状況（押すと一覧へ）">${counts.map(([n, l, id]) => `<li class="${l === "確認待ち" && n ? "hot" : ""}"><button type="button" class="flow-btn" data-open-stage="${id}" aria-label="${l} ${n}件の一覧"><b>${n}</b><span>${l}</span></button></li>`).join("")}</ol>
-      ${sections.map(([s, l, h]) => { const its = byStage(s); return its.length ? `<h2>${l} <small>${its.length} 点</small></h2>${h ? `<p class="muted hint">${h}</p>` : ""}${s === "30_feedback" ? its.map(it => card(it)).join("") : shelf(its)}` : ""; }).join("")}
+      ${sections.map(([s, l, h]) => {
+        const its = byStage(s);
+        if (!its.length) return "";
+        // 直し待ち・工程C待ちは、段の見出しから「今すぐ」を頼める（点検などカード以外の理由で入った物にも使える。2026-10-23）
+        const nm = STAGE_NOW[s];
+        const head = nm ? `<div class="row stage-head" style="align-items:center;justify-content:space-between"><h2>${l} <small>${its.length} 点</small></h2><button type="button" class="btn primary stage-now" data-mode="${nm}"></button></div>`
+          : `<h2>${l} <small>${its.length} 点</small></h2>`;
+        return `${head}${h ? `<p class="muted hint">${h}</p>` : ""}${s === "30_feedback" ? its.map(it => card(it)).join("") : shelf(its)}`;
+      }).join("")}
       <h2>次に作るもの <small>${data.todo.length} 件</small></h2>
       <ul class="queue">${data.todo.slice(0, 8).map(t => `<li><span>${esc(t.name)}</span><code>${esc(t.code)}</code></li>`).join("") || "<li><span>待ち行列は空です</span></li>"}</ul>
       ${data.todo.length > 8 ? `<p class="muted">ほか ${data.todo.length - 8} 件</p>` : ""}`;
     wireRun();
+    el.querySelectorAll(".stage-now").forEach(b => {
+      paintNow(b);
+      b.addEventListener("click", async () => {
+        b.disabled = true; b.textContent = "依頼中…";
+        try { await requestRun(b.dataset.mode); } catch (e) { b.textContent = errText(e); b.disabled = false; return; }
+        paintNow(b);
+      });
+    });
     hydrateImgs(el);
   }
 
@@ -770,7 +786,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><b>直しを反映する</b>：「直して」を送ったものを作り直す（最大3つ、工程A → B）</li>
           <li><b>工程Cを動かす</b>：「整えた」を押したものの仕上げ前処理（最大2つ）</li>
         </ul>
-        <p style="font-size:14px">カードで「直して」や「整えた」を送った後に出る <b>今すぐ直す</b>／<b>今すぐ工程Cへ</b> も同じです。</p>
+        <p style="font-size:14px">カードで「直して」や「整えた」を送った後に出る <b>今すぐ直す</b>／<b>今すぐ工程Cへ</b> も同じです。ラインタブの<b>直し待ち</b>・<b>工程C待ち</b>の見出しの横にも同じボタンがあります（点検などで、カードから送らずに直し待ちに入った物もこれで動かせます）。</p>
         <ol class="timeline">
           <li><time>押す</time><div><b>依頼済み</b><br><span class="muted" style="font-size:13px">まだPCが受け付ける前なら「依頼を取り消す」で取り消せる</span></div></li>
           <li><time>〜5分</time><div><b>稼働中</b><br><span class="muted" style="font-size:13px">PCが5分おきに見に来て、見つけたら始める。送った返事の取り込みも一緒にやる</span></div></li>
@@ -865,6 +881,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // ---------------------------------------------------------------- 今すぐ動かす（requests/<mode>.json → PCの見張りが5分おきに拾う）
   const NOW_MODE = { fix: "fix", prep: "prep", prep_fix: "prep" };
+  const STAGE_NOW = { "30_feedback": "fix", "50_prep": "prep" };   // 段の見出しの「今すぐ」
   const RUN_LABEL = { new: "新作", fix: "直し", prep: "工程C", morning: "朝のライン" };
   let requests = {}, status = null, pollTimer = null, wasActive = false;
 
@@ -929,7 +946,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   function paintRun() {
     const old = document.getElementById("run-panel");
     if (old) { old.outerHTML = runPanel(); wireRun(); }
-    document.querySelectorAll(".sent .now:not([hidden])").forEach(paintNow);
+    document.querySelectorAll(".sent .now:not([hidden]), .stage-now").forEach(paintNow);
   }
 
   function wireRun() {
@@ -1346,7 +1363,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-23.3";
+  const APP_VERSION = "2026-10-23.4";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
