@@ -408,11 +408,13 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     // テクスチャ（2026-10-24）：塗り終えたら「テクスチャ完了」→ テクスチャ確認待ちでテクスチャ込みの3Dを見て OK なら Unity 待ちへ
     texturing: { acts: ["tex_done", "back_ok"], cls: "", note: {} },
     tex_review: { acts: ["tex_ok", "tex_fix"], cls: "", note: { tex_fix: ["塗り直すところのメモ（なくてもOK）", "例：バーの黄色をもう少し濃く"] } },
+    // Unity待ちからも塗り直しに戻せる（フォルダごと＝.spp・テクスチャ・FBX もテクスチャ待ちへ）
+    unity: { acts: ["tex_fix"], cls: "one", note: { tex_fix: ["塗り直すところのメモ（なくてもOK）", "例：コーンの汚れを少なく"] } },
     rejected: { acts: ["unreject"], cls: "one", note: {} },
   };
   const BTN_TEXT = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた → 工程Cへ", prep_ok: "OK（確定）", prep_fix: "直して",
     back_ok: "OK済みに戻す（整え直す）", unreject: "確認待ちに戻す", tex_done: "テクスチャ完了 → 確認へ", tex_ok: "OK → Unityへ", tex_fix: "塗り直す" };
-  const BTN_TEXT_IN = { prep_review: { back_ok: "整え直す" }, texturing: { back_ok: "整え直す" } };   // 3つ並ぶところは短く
+  const BTN_TEXT_IN = { prep_review: { back_ok: "整え直す" }, texturing: { back_ok: "整え直す" }, unity: { tex_fix: "塗り直す（テクスチャ待ちへ戻す）" } };   // 3つ並ぶところは短く
   const NOTE_REQUIRED = ["fix", "prep_fix"];
   // メモの定型文（押すとメモ欄に足す。◯ は選んだ状態になるので、そのまま数字を打てる）
   const TEMPLATES = {
@@ -725,7 +727,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           ${arrow("OK（確定）")}
           ${step("🎨", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えたらカードの「テクスチャ完了 → 確認へ」")}
           ${step("🔍", "テクスチャ確認待ち", "PCが5分以内にテクスチャを貼った3Dを作る。「テクスチャ込みの3Dで見る」で確かめて OK → Unityへ／塗り直す", true)}
-          ${step("🧩", "Unity待ち", "Unity でプレハブにする（テクスチャは Textures/、FBX は _prep/ の単位ごとの物）。ここから先は手作業")}
+          ${step("🧩", "Unity待ち", "Unity でプレハブにする（テクスチャは Textures/、FBX は _prep/ の単位ごとの物）。テクスチャを直したくなったら「塗り直す」でテクスチャ待ちへ戻せる")}
         </div>
       </section>
 
@@ -1106,7 +1108,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     "55_prep_review": { label: "工程C確認待ち", hint: "消す面とパーツ分けを確認して OK（確定）／直して。Blenderで整え直したいときは「整え直す」" },
     "60_texturing": { label: "テクスチャ待ち", hint: "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えて Textures/ に書き出したら「テクスチャ完了」。もう一度整えたいときは「整え直す」", mode: "texturing" },
     "65_texture_review": { label: "テクスチャ確認待ち", hint: "「テクスチャ込みの3Dで見る」で確かめて、OK なら Unity 待ちへ。直すなら「塗り直す」", mode: "tex_review" },
-    "70_unity": { label: "Unity待ち", hint: "Unity でプレハブにする。テクスチャは Textures/、FBX は _prep/ の単位ごとの物（Cone・Bar など）" },
+    "70_unity": { label: "Unity待ち", hint: "Unity でプレハブにする。テクスチャは Textures/、FBX は _prep/ の単位ごとの物（Cone・Bar など）。テクスチャを直したいときは「塗り直す」でテクスチャ待ちへ（フォルダごと戻る）", mode: "unity" },
     "99_rejected": { label: "ボツ", hint: "作らないことにしたもの。やっぱり作るなら「確認待ちに戻す」", mode: "rejected" },
   };
   let curStage = null, prevTab = "line";
@@ -1389,7 +1391,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-24.3";
+  const APP_VERSION = "2026-10-24.4";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
