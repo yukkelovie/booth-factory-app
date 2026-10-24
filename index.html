@@ -586,7 +586,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     const counts = [[data.todo.length, "待ち行列", "todo"], ...data.stages.map(s => [byStage(s.id).length, s.label, s.id])];
     const sections = [["30_feedback", "直し待ち", "翌朝7:00の工程Aが作り直します（1回に3件まで。古い順）"], ["10_blockout", "工程A済み", "工程Bの検品待ち"],
       ["50_prep", "工程C待ち", "翌朝7:00の工程Cで、見えない面の削除・パーツ分け・UV・FBX書き出しを仮でやります"],
-      ["60_texturing", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ"], ["99_rejected", "ボツ", ""]];
+      ["60_texturing", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは <Item>_low.fbx、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）"], ["99_rejected", "ボツ", ""]];
     el.innerHTML = runPanel() + `
       <ol class="flow" aria-label="ラインの状況（押すと一覧へ）">${counts.map(([n, l, id]) => `<li class="${l === "確認待ち" && n ? "hot" : ""}"><button type="button" class="flow-btn" data-open-stage="${id}" aria-label="${l} ${n}件の一覧"><b>${n}</b><span>${l}</span></button></li>`).join("")}</ol>
       ${sections.map(([s, l, h]) => {
@@ -711,7 +711,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           ${arrow()}
           ${step("👀", "工程C確認待ち", "消す面（赤）とパーツ分けを見て OK（確定）／直して", true)}
           ${arrow("OK（確定）")}
-          ${step("🎨", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ。ここから先は手作業")}
+          ${step("🎨", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは <Item>_low.fbx、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。ここから先は手作業")}
         </div>
       </section>
 
@@ -1090,7 +1090,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     "40_approved": { label: "OK済み", hint: "Blenderで整えたら「整えた」を押すと、工程Cが仕上げ前処理をします。形から作り直したいときは「直して」", mode: "prep" },
     "50_prep": { label: "工程C待ち", hint: "次のライン（または「今すぐ」）で工程Cが仕上げ前処理をします" },
     "55_prep_review": { label: "工程C確認待ち", hint: "消す面とパーツ分けを確認して OK（確定）／直して。Blenderで整え直したいときは「整え直す」" },
-    "60_texturing": { label: "テクスチャ待ち", hint: "_prep フォルダの FBX を Substance Painter へ。もう一度整えたいときは「OK済みに戻す」", mode: "texturing" },
+    "60_texturing": { label: "テクスチャ待ち", hint: "_prep フォルダの FBX を Substance Painter へ（塗るのは <Item>_low.fbx、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。もう一度整えたいときは「OK済みに戻す」", mode: "texturing" },
     "99_rejected": { label: "ボツ", hint: "作らないことにしたもの。やっぱり作るなら「確認待ちに戻す」", mode: "rejected" },
   };
   let curStage = null, prevTab = "line";
@@ -1363,7 +1363,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-23.4";
+  const APP_VERSION = "2026-10-24.1";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
