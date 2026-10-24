@@ -698,7 +698,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       <h2>使い方</h2>
       <nav class="help-toc" aria-label="目次">
         <a href="#h-flow">工場の流れ</a><a href="#h-morning">毎朝7時</a><a href="#h-card">カードの見方</a>
-        <a href="#h-reply">返事のしかた</a><a href="#h-now">今すぐ動かす</a><a href="#h-stages">ラインの見方</a><a href="#h-faq">よくある質問</a>
+        <a href="#h-reply">返事のしかた</a><a href="#h-tex">テクスチャ（Substance）</a><a href="#h-now">今すぐ動かす</a><a href="#h-stages">ラインの見方</a><a href="#h-faq">よくある質問</a>
       </nav>
 
       <section class="help-sec" id="h-flow">
@@ -735,6 +735,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <h3>毎朝7時に起きること</h3>
         <ol class="timeline">
           <li><time>7:00</time><div><b>PCがスリープから起きる</b><br><span class="muted" style="font-size:13px">仕事中（12〜21時）は動かない</span></div></li>
+          <li><time>7:00</time><div><b>Google ドライブを待つ</b><br><span class="muted" style="font-size:13px">起きた直後は G: がまだつながっていないことがあるので、つながるまで最大10分待ってから始める</span></div></li>
           <li><time>7:00</time><div><b>受信箱の取り込み</b><br><span class="muted" style="font-size:13px">アプリで送った返事を読んで、各フォルダへ振り分ける</span></div></li>
           <li><time>7:01</time><div><b>工程A → 工程B → 工程C</b><br><span class="muted" style="font-size:13px">全部で数分〜十数分</span></div></li>
           <li><time>7:05</time><div><b>アプリを更新</b><br><span class="muted" style="font-size:13px">右上の ↻ を押すと、最新の状態が出る</span></div></li>
@@ -752,7 +753,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         </div>
         <p class="muted" style="font-size:12px">例：${esc(ex.name)}</p>` : '<p class="muted">（データを読み込むと、ここに本物の4面図が出ます）</p>'}
         <p><b>4面図</b>：正面・左側面・上面・パース（斜めから）の4方向。形と比率をここで見ます。ガラスは半透明で描くので、後ろの部品も見えます。<b>4面図を押すと3D</b>が開きます（右下の「タップで3D」）。</p>
-        <p style="font-size:14px"><b>確認タブの一番上</b>：今やることの件数（黄色＝あなたの番：確認待ち・C確認・整え待ち／白＝工場の番：直し待ち・塗り待ち）と、テーマの進み具合（作ったもの / アイデアの数）。マスを押すとその段の一覧へ。</p>
+        <p style="font-size:14px"><b>確認タブの一番上</b>：今やることの件数（黄色＝あなたの番：確認待ち・C確認・整え待ち・テクスチャ確認／白＝それ以外：直し待ち・塗り待ち・Unity待ち）と、テーマの進み具合（作ったもの / アイデアの数）。マスを押すとその段の一覧へ。</p>
         <div class="chips">
           <span class="chip ok">ポリ 476 / 6,000</span><span class="chip ok">浮きなし</span><span class="chip plain">マテリアル 6</span>
         </div>
@@ -765,7 +766,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><b>工程Bで直したこと</b>（たためる）：検品で自動で直したこと</li>
           <li><b>歩み</b>（たためる）：工場が作った日・送った返事・作り直し・工程C を日付順に</li>
           <li><b>ファイルの場所</b>（カードの一番下）：PCで開く .blend のパス。PCのブラウザなら「コピー」で貼り付けられる。工程Cの後は _prep の .blend。いつも開くなら PC の <code>_作業台</code> フォルダのほうが早い（<a href="#h-faq">よくある質問</a>）</li>
-          <li><b>3Dで回して見る</b>：押すと全画面で3Dが開く。1本指で回転、ピンチでズーム、2本指で移動。「ワイヤー」は押すたびに なし → 三角 → 四角 と切り替わる（三角＝GPU・Unityが実際に描く三角形、四角＝Blender で見えるのと同じ辺）。「視点を戻す」で最初の向きに。閉じるはスマホの「戻る」でもOK。4面図では見えない裏側や隙間の確認に。工程C確認待ちのカードでは、自分で整えた .blend の形が出る（工程Cの仮の結果ではない）。ボツのものには出ない</li>
+          <li><b>3Dで回して見る</b>：押すと全画面で3Dが開く。1本指で回転、ピンチでズーム、2本指で移動。「ワイヤー」は押すたびに なし → 三角 → 四角 と切り替わる（三角＝GPU・Unityが実際に描く三角形、四角＝Blender で見えるのと同じ辺）。「視点を戻す」で最初の向きに。閉じるはスマホの「戻る」でもOK。4面図では見えない裏側や隙間の確認に。工程C確認待ちのカードでは、自分で整えた .blend の形が出る（工程Cの仮の結果ではない）。ボツのものには出ない。テクスチャ確認待ち・Unity待ちのカードには<b>テクスチャ込みの3Dで見る</b>もある（ローポリにテクスチャを貼った形。セットの2つ目以降も並べて表示）</li>
           <li><b>UV</b>（たためる）：<b>展開図</b>（UVの切り開き方）と<b>チェッカー</b>（市松模様を貼った絵。ゆがんでいなければ OK）。工程Cの後は、テクスチャセットごとの展開図が見られる（工程C確認待ちのカード・テクスチャ待ちの一覧）。Print で始まるセットは写真・ラベル用で、上向きのまま並ぶ</li>
         </ul>
       </section>
@@ -786,8 +787,30 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <div class="decide demo-btns" aria-hidden="true" style="border-top:0;padding-top:0">
           <div class="btns one"><button type="button" class="act-prep" tabindex="-1">整えた → 工程Cへ</button></div>
         </div>
-        <p style="font-size:14px"><b>あとから戻す</b>：OKを出した後でも戻せます。<b>OK済み</b>のカードの「直して」で作り直しに戻る（Blenderで整えた .blend は、作り直す前にアイテムのフォルダの <code>_backup</code> に保存されます）。<b>工程C確認待ち</b>は「整え直す」、<b>テクスチャ待ち</b>は「OK済みに戻す」で、もう一度Blenderで整えられる（工程Cは元の .blend を書き換えないので、整えた形はそのまま残っている）。<b>ボツ</b>は「確認待ちに戻す」で復活。どれもラインタブの数字のマスから一覧を開くと押せます。</p>
+        <p style="font-size:14px"><b>あとから戻す</b>：OKを出した後でも戻せます。<b>OK済み</b>のカードの「直して」で作り直しに戻る（Blenderで整えた .blend は、作り直す前にアイテムのフォルダの <code>_backup</code> に保存されます）。<b>工程C確認待ち</b>は「整え直す」、<b>テクスチャ待ち</b>は「整え直す」で、もう一度Blenderで整えられる（工程Cは元の .blend を書き換えないので、整えた形はそのまま残っている）。<b>テクスチャ確認待ち</b>と<b>Unity待ち</b>は「塗り直す」でテクスチャ待ちに戻せる（フォルダごと＝.spp・テクスチャ・FBX も戻る）。<b>ボツ</b>は「確認待ちに戻す」で復活。どれもラインタブの数字のマスから一覧を開くと押せます。</p>
         <p style="font-size:14px"><b>整えた</b>（OK済みのもの）：Blender で整え終わったら押す。メモ欄に「扉はギミックにしたい」「UVはそのまま」「ビスも丸めて」など工程Cへの指示を書けます（なくてもOK）。ローポリのベベルは、入れたい所だけ自分で入れて<b>適用してから</b>押す（モディファイアのままだと工程Cで外れる）。</p>
+      </section>
+
+      <section class="help-sec" id="h-tex">
+        <h3>テクスチャ（Substance Painter）</h3>
+        <p style="font-size:14px"><b>使うファイル</b>（アイテムのフォルダの <code>_prep</code>）：</p>
+        <ul style="font-size:14px">
+          <li><b>塗る</b>：<code>名前_low.fbx</code>（全部入り）。セットの2つ目以降（コーンの2本目など）は入っていない（Unity で並べる）</li>
+          <li><b>ベイク</b>：<code>名前_bake_low.fbx</code>／<code>名前_bake_high.fbx</code> があればそちら（触れ合う別の単位＝バーなどを離してあり、相手の形や影が焼き込まれない）。無ければ <code>名前_low</code>／<code>名前_high</code>。UV は全部同じ</li>
+          <li>ベイクした後、<b>Edit → Project Configuration</b> の Mesh で <code>名前_low.fbx</code> に差し替えると、組み上がった形で塗れる（UV が同じなのでベイクしたマップはそのまま。位置を使うジェネレーターだけ、離した単位は少しずれる）</li>
+          <li><code>名前_単位_low/high.fbx</code>（Cone・Bar など）は Unity のプレハブ用。塗るのには使わない</li>
+        </ul>
+        <p style="font-size:14px"><b>保存先</b>：プロジェクト（<code>名前.spp</code>）は <code>Substance/</code>、書き出しは <code>Textures/</code>（テクスチャ待ちに移るとき工場が作る）。プロジェクトはアイテム名で保存する（書き出しのファイル名に使われる）。</p>
+        <p style="font-size:14px"><b>書き出し</b>（File → Export Textures）：テンプレートは「Unity Universal Render Pipeline (Metallic Standard)」を複製して、出力マップを次の4つにした物（この Substance にはビルトイン用がなく、URP の Metallic は Unity の Standard と同じ詰め方）。ファイル名は <code>$project_$textureSet_〜</code>。png・8ビット・1024（細かさが足りなければ 2048）・パディング「テクスチャの境界線まで」。</p>
+        <table class="stage-tbl">
+          <tr><th>BaseMap</th><td>RGB＝<b>Base color</b>（Diffuse ではない。Diffuse は金属の所が黒くなる）、A＝Opacity</td></tr>
+          <tr><th>Normal</th><td>RGB＝Normal OpenGL</td></tr>
+          <tr><th>Occlusion</th><td>Ambient occlusion（Mixed AO でも可）</td></tr>
+          <tr><th>MetallicSmoothness</th><td>RGB＝Metallic、A＝「変換されたマップ」の <b>Glossiness</b>（チャンネルの Glossiness だと全面同じ値になる。Glossiness² は別物）</td></tr>
+        </table>
+        <p style="font-size:14px">光る部分がある物（灯り・照明）だけ Emissive を足す。Unity では Standard マテリアルの Albedo・Metallic・Normal Map（取り込み設定で Texture Type を Normal map に）・Occlusion・Emission に入れる。1つのマテリアルを単位ごとの FBX に共通で使う。</p>
+        <p style="font-size:14px"><b>塗り終えたら</b>：テクスチャ待ちのカードの「テクスチャ完了 → 確認へ」→ 5分以内にテクスチャ確認待ちへ移って、テクスチャ込みの3Dが見られる → OK → Unityへ／塗り直す。カードに「前の書き出しのまま」（一緒に書き出したはずの物が古い＝テンプレートから抜けている）や「金属の所の色が真っ黒」（BaseMap に Diffuse が入っている）と出たら、書き出しを見直す。</p>
+        <p style="font-size:14px"><b>注意</b>：塗り始めたら工程Cは作り直さない（作り直すと形が同じでも UV の配置が変わって、焼き直しになる）。段を移るとフォルダごと動くので、Substance の「最近使ったプロジェクト」は古い場所を指す（今の場所の <code>Substance/</code> から開く）。</p>
       </section>
 
       <section class="help-sec" id="h-now">
@@ -821,10 +844,12 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <tr><th>OK済み</th><td class="you">Blender で整えて「整えた」を押す番</td></tr>
           <tr><th>工程C待ち</th><td>翌朝の仕上げ前処理待ち</td></tr>
           <tr><th>C確認待ち</th><td class="you">工程Cの結果の確認待ち</td></tr>
-          <tr><th>テクスチャ待ち</th><td>Substance Painter で塗る番（手作業）</td></tr>
+          <tr><th>テクスチャ待ち</th><td class="you">Substance Painter で塗って、Textures/ に書き出したら「テクスチャ完了」</td></tr>
+          <tr><th>テクスチャ確認待ち</th><td class="you">テクスチャ込みの3Dを見て OK → Unityへ／塗り直す</td></tr>
+          <tr><th>Unity待ち</th><td class="you">Unity でプレハブにする番（手作業）</td></tr>
           <tr><th>ボツ</th><td>作らないことにしたもの</td></tr>
         </table>
-        <p class="muted" style="font-size:13px">太字があなたの出番。確認タブの赤い数字は、確認待ち＋C確認待ちの件数です。</p>
+        <p class="muted" style="font-size:13px">太字があなたの出番。確認タブの赤い数字は、確認待ち＋C確認待ち＋テクスチャ確認待ちの件数です。</p>
         <p style="font-size:14px">ラインタブの<b>数字のマスを押すと</b>、その段に溜まっているものの一覧が開きます。どれも確認待ちと同じ大きいカード（4面図・ポリ数・直した履歴・UV）で見られて、その段でできる操作（OK・整えた など）もそこで押せます。2点以上あるときは<b>横にスワイプ</b>で次のカードへ（上に「3 / 7」のように今の位置が出ます）。</p><p style="font-size:14px">小さいサムネ（OK済みなど）を押しても、そのアイテムのカードに飛びます。「← 戻る」で元の画面へ。</p>
       </section>
 
@@ -846,7 +871,9 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <dt>ローポリのスムーズは？</dt><dd>工程Cが、全部の面をスムーズにして50°以上曲がった辺だけ角にする「自動スムーズ」をかけ直します。整えるときにスムーズが外れても大丈夫です。触ってほしくないときはメモに「スムーズはそのまま」と書いてください。</dd>
           <dt>コーンやバケツみたいに中が空洞の物は？</dt><dd>ブロックアウトでは中身の詰まった形で作り、工程Cで口を開けて内側に厚み（コーンなら4mm）を付けます。UVは内側にも外側と同じ密度で取るので、そのぶん各島は小さくなります。開けたい部品や向き（底・上）は「整えた」のメモで指定できます（例：「コーンの底を開けて中空に」）。下から中を見せたいときは、台など下にある部品にも穴が必要です。</dd>
           <dt>Blender のアセットブラウザで使いたい</dt><dd>工場のアイテムは全部 <code>G:\\マイドライブ\\booth\\products\\_factory\\_asset_library</code> にアセットとして入っています（ボツ以外）。<code>G:\\マイドライブ\\booth</code> をアセットライブラリに登録してあれば、そのままアセットブラウザに「3Dアセット工場」の分類（確認待ち・OK済み…）で出ます（分類の定義は booth の一番上の blender_assets.cats.txt に工場が書きます。自分で作った分類の行は消しません）。工程が進むと中身も分類も自動で更新されます（工程Cの後はローポリの形）。シーンに置くときに読み込み方法を「リンク」にしておくと、ライブラリが更新されたときに置いた物も新しくなります（「アペンド」だと置いた時点の形のまま）。</dd>
-          <dt>どのファイルを開けばいいかわからない</dt><dd>PCの <code>G:\\マイドライブ\\booth\\products\\_factory\\_作業台</code> を開いてください。あなたの出番のもの（1【整える】＝OK済み、2【C確認】＝工程Cの結果、3【塗る】＝テクスチャ待ち）の .blend へのショートカットが並んでいて、ダブルクリックで Blender が開きます。アプリが更新されるたびに作り直されるので、終わったものは自動で消えます。エクスプローラーのクイックアクセスにピン留めしておくと便利です。カードの一番下にもファイルの場所が出ていて、PCのブラウザなら「コピー」で Blender の「開く」やエクスプローラーのアドレス欄に貼れます。</dd>
+          <dt>どのファイルを開けばいいかわからない</dt><dd>PCの <code>G:\\マイドライブ\\booth\\products\\_factory\\_作業台</code> を開いてください。あなたの出番のもの（1【整える】＝OK済み、2【C確認】＝工程Cの結果、3【塗る】＝テクスチャ待ち、4【Unity】＝Unity待ち）の .blend へのショートカットが並んでいて、ダブルクリックで Blender が開きます。アプリが更新されるたびに作り直されるので、終わったものは自動で消えます。エクスプローラーのクイックアクセスにピン留めしておくと便利です。カードの一番下にもファイルの場所が出ていて、PCのブラウザなら「コピー」で Blender の「開く」やエクスプローラーのアドレス欄に貼れます。</dd>
+          <dt>部品のめり込みは？</dt><dd>部品は面と面でぴったり突き合わせるのが決まりです（めり込みは見た目が汚く、工程Cの面の削除やベイクでゴミ面の原因になる）。ただし<b>丸い面（円柱・丸棒の側面）に付く・横から生える部品</b>（ポールから出るアーム、ポールに貼るプレートなど）は、平らな端を丸い面に合わせられないので少しの入り込みはOK（突き抜けはNG）。ポールより太い円柱を重ねた帯・キャップや、平らな面どうしの重なりは直します。実物どおり差し込む作り（基礎に埋まるポール・台座を貫くボルト）も OK。</dd>
+          <dt>ハイポリの丸い部品は？</dt><dd>工程Cが、ローポリの円柱（12角形など）をハイポリでは32角形前後に増やして本当の円柱にします（12→36、16→32、8→32）。部品ごとに増やしてからつなげるので、輪とバーのように食い込んだ所も漏れません。ぴったり重なる面でつながる部品（縞のバーの縞どうし）は溶接するので、継ぎ目は1本の線だけ（色の境目＝ID の境目として残る。丸めない）。</dd>
           <dt>アイデアを足したい・順番を変えたい</dt><dd>00_ideas\\ideas.md を直接書き換えるか、Claude のチャットで頼んでください。</dd>
         </dl>
       </section>`;
@@ -1391,7 +1418,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-24.4";
+  const APP_VERSION = "2026-10-24.5";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
