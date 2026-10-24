@@ -396,7 +396,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   const list = (title, xs) => xs && xs.length ? `<h4>${title}</h4><ul>${xs.map(x => `<li>${md(x)}</li>`).join("")}</ul>` : "";
   const short = it => it.name.split("／")[0];
 
-  const LABEL = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた", prep_ok: "工程C確定", prep_fix: "工程Cの直し", back_ok: "OK済みに戻す", unreject: "ボツ取り消し" };
+  const LABEL = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた", prep_ok: "工程C確定", prep_fix: "工程Cの直し", back_ok: "OK済みに戻す", unreject: "ボツ取り消し",
+    tex_done: "テクスチャ完了", tex_ok: "テクスチャOK", tex_fix: "塗り直し" };
   const MODES = {
     review: { acts: ["ok", "fix", "reject"], cls: "", note: { fix: ["直してほしいこと", "例：支柱をもう少し太く。屋根はフラットに"] } },
     // OK済みからも「直して」で作り直しに戻せる（Blenderで整えた .blend は _backup に残る）
@@ -404,12 +405,14 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       fix: ["作り直してほしいこと", "例：脚をもう少し太く（Blenderで整えた分は _backup に残ります）"] } },
     prep_shelf: { acts: ["prep"], cls: "one", note: { prep: ["工程Cへのメモ（なくてもOK）", "例：扉はギミックにしたい／UVはそのまま"] } },   // 小さいサムネ用（直しは大きいカードで）
     prep_review: { acts: ["prep_ok", "prep_fix", "back_ok"], cls: "", note: { prep_fix: ["工程Cへの直し", "例：取っ手の面は消さないで／ガラスは別のテクスチャセットに"] } },
-    texturing: { acts: ["back_ok"], cls: "one", note: {} },
+    // テクスチャ（2026-10-24）：塗り終えたら「テクスチャ完了」→ テクスチャ確認待ちでテクスチャ込みの3Dを見て OK なら Unity 待ちへ
+    texturing: { acts: ["tex_done", "back_ok"], cls: "", note: {} },
+    tex_review: { acts: ["tex_ok", "tex_fix"], cls: "", note: { tex_fix: ["塗り直すところのメモ（なくてもOK）", "例：バーの黄色をもう少し濃く"] } },
     rejected: { acts: ["unreject"], cls: "one", note: {} },
   };
   const BTN_TEXT = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた → 工程Cへ", prep_ok: "OK（確定）", prep_fix: "直して",
-    back_ok: "OK済みに戻す（整え直す）", unreject: "確認待ちに戻す" };
-  const BTN_TEXT_IN = { prep_review: { back_ok: "整え直す" } };   // 3つ並ぶところは短く
+    back_ok: "OK済みに戻す（整え直す）", unreject: "確認待ちに戻す", tex_done: "テクスチャ完了 → 確認へ", tex_ok: "OK → Unityへ", tex_fix: "塗り直す" };
+  const BTN_TEXT_IN = { prep_review: { back_ok: "整え直す" }, texturing: { back_ok: "整え直す" } };   // 3つ並ぶところは短く
   const NOTE_REQUIRED = ["fix", "prep_fix"];
   // メモの定型文（押すとメモ欄に足す。◯ は選んだ状態になるので、そのまま数字を打てる）
   const TEMPLATES = {
@@ -472,6 +475,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       <header class="card-head"><div><h3>${esc(it.name)}</h3><p class="code">${esc(it.id)}</p></div>
         <p class="dims">${d[0].toFixed(2)}<span>×</span>${d[1].toFixed(2)}<span>×</span>${d[2].toFixed(2)}<small> m</small></p></header>
       ${sheetPic(it)}
+      ${texRow(it)}
       <div class="chips">
         <span class="chip ${it.tris <= it.budget ? "ok" : "warn"}">ポリ ${it.tris.toLocaleString()} / ${it.budget.toLocaleString()}</span>
         <span class="chip ${it.floating ? "warn" : "ok"}">${it.floating ? "浮き " + it.floating : "浮きなし"}</span>
@@ -492,6 +496,11 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       <p class="meta">ビルド ${esc(it.built)}</p>
     </article>`;
   }
+
+  // テクスチャ込みの3D（テクスチャ確認待ち・Unity待ち。Textures/ の書き出しから工場が作る）
+  const texRow = it => !it.tex ? "" : it.tex.glb
+    ? `<button type="button" class="btn primary v3d-open" data-v3d-tex="${esc(it.id)}">テクスチャ込みの3Dで見る</button>${(it.tex.missing || []).length ? `<p class="muted" style="font-size:12px">足りないもの：${esc(it.tex.missing.join("、"))}</p>` : ""}`
+    : `<div class="banner err"><p>テクスチャ込みの3Dが作れませんでした。Textures/ に書き出しがあるか確かめてください（足りないもの：${esc((it.tex.missing || []).join("、") || "—")}）</p></div>`;
 
   // PCで開くファイルの場所（PCのブラウザなら「コピー」してエクスプローラーや Blender の「開く」に貼れる）
   const pathRow = it => it.path ? `<div class="path"><code>${esc(it.path)}</code><button type="button" class="btn copy-path" data-path="${esc(it.path)}">コピー</button></div>` : "";
@@ -538,7 +547,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   function shelf(its, mode) {
     return `<ul class="shelf">${its.map(it => {
       const d = it.dims || [0, 0, 0];
-      const meta = it.prep && it.stage === "60_texturing"
+      const meta = it.prep && ["60_texturing", "65_texture_review", "70_unity"].includes(it.stage)
         ? `low ${(it.prep.low_tris || 0).toLocaleString()} ・ high ${(it.prep.high_tris || 0).toLocaleString()} tris ・ ${Object.keys(it.prep.sets || {}).length}セット`
         : `${d[0].toFixed(2)}×${d[1].toFixed(2)}×${d[2].toFixed(2)} m ・ ${it.tris.toLocaleString()} tris`;
       return `<li><button type="button" class="open-item" data-open-stage="${esc(it.stage)}" data-open-item="${esc(it.id)}" aria-label="${esc(short(it))} の詳細を見る">${pic(it.img.persp, it.id + " のパース")}<p class="s-name">${esc(short(it))} ›</p><p class="s-meta">${meta}</p></button>${mode ? decideUI(it, mode) : ""}</li>`;
@@ -551,7 +560,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   // 確認タブの一番上：今やること（あなたの番＝黄色）と工場の番、テーマの進み具合。マスを押すとその段の一覧
   function summary() {
     const tiles = [["20_ready", "確認待ち", true], ["55_prep_review", "C確認", true], ["40_approved", "整え待ち", true],
-      ["30_feedback", "直し待ち", false], ["60_texturing", "塗り待ち", false]];
+      ["65_texture_review", "テクスチャ確認", true], ["30_feedback", "直し待ち", false], ["60_texturing", "塗り待ち", false], ["70_unity", "Unity待ち", false]];
     const done = data.ideas_done || 0, total = data.ideas_total || 0;
     return `<section class="sum" aria-label="今の状況">
       <div class="sum-tiles">${tiles.map(([s, l, you]) => { const n = byStage(s).length;
@@ -564,18 +573,19 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   function renderReview() {
     const el = document.getElementById("view-review");
     if (!data) { el.innerHTML = noData(); return; }
-    const ready = byStage("20_ready"), prep = byStage("55_prep_review"), ok = byStage("40_approved");
+    const ready = byStage("20_ready"), prep = byStage("55_prep_review"), ok = byStage("40_approved"), texr = byStage("65_texture_review");
     el.innerHTML = `
       ${summary()}
       ${data.exhausted ? '<p class="banner">テーマのアイデアが尽きました。次のテーマを決めてください。</p>' : ""}
       <h2>確認待ち <small>${ready.length} 点</small></h2>
       ${ready.map(it => card(it, "review")).join("") || '<p class="muted">確認待ちはありません。次は朝7時のラインで届きます。</p>'}
       ${prep.length ? `<h2>工程C確認待ち <small>${prep.length} 点</small></h2><p class="muted hint">消す面とパーツ分けを確認して「OK（確定）」でテクスチャ待ちへ。直す所があれば「直して」</p>${prep.map(prepCard).join("")}` : ""}
+      ${texr.length ? `<h2>テクスチャ確認待ち <small>${texr.length} 点</small></h2><p class="muted hint">「テクスチャ込みの3Dで見る」で確かめて、OK なら Unity 待ちへ。直すなら「塗り直す」でテクスチャ待ちに戻ります</p>${texr.map(it => card(it, "tex_review")).join("")}` : ""}
       ${ok.length ? `<h2>OK済み <small>${ok.length} 点</small></h2><p class="muted hint">Blenderで整えたら「整えた」を押すと、翌朝の工程Cが仕上げ前処理をします。作り直したいときはサムネを押して、大きいカードの「直して」</p>${shelf(ok, "prep_shelf")}` : ""}
       <p class="muted" style="font-size:12px">返事はPCが5分以内に各段へ振り分けます（OK → OK済み、直して → 直し待ち、ボツ → ボツ）。作り直しは翌朝7:00のラインか「今すぐ直す」で。</p>`;
     wireDecide(el);
     hydrateImgs(el);
-    const n = ready.length + prep.length;
+    const n = ready.length + prep.length + texr.length;
     const b = document.getElementById("badge");
     b.textContent = n; b.hidden = !n;
   }
@@ -586,7 +596,9 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     const counts = [[data.todo.length, "待ち行列", "todo"], ...data.stages.map(s => [byStage(s.id).length, s.label, s.id])];
     const sections = [["30_feedback", "直し待ち", "翌朝7:00の工程Aが作り直します（1回に3件まで。古い順）"], ["10_blockout", "工程A済み", "工程Bの検品待ち"],
       ["50_prep", "工程C待ち", "翌朝7:00の工程Cで、見えない面の削除・パーツ分け・UV・FBX書き出しを仮でやります"],
-      ["60_texturing", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）"], ["99_rejected", "ボツ", ""]];
+      ["60_texturing", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えたら「テクスチャ完了」"],
+      ["65_texture_review", "テクスチャ確認待ち", "テクスチャ込みの3Dを見て OK なら Unity 待ちへ"], ["70_unity", "Unity待ち", "Unity でプレハブにする（テクスチャは Textures/、FBX は _prep/ の単位ごとの物）"],
+      ["99_rejected", "ボツ", ""]];
     el.innerHTML = runPanel() + `
       <ol class="flow" aria-label="ラインの状況（押すと一覧へ）">${counts.map(([n, l, id]) => `<li class="${l === "確認待ち" && n ? "hot" : ""}"><button type="button" class="flow-btn" data-open-stage="${id}" aria-label="${l} ${n}件の一覧"><b>${n}</b><span>${l}</span></button></li>`).join("")}</ol>
       ${sections.map(([s, l, h]) => {
@@ -711,7 +723,9 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           ${arrow()}
           ${step("👀", "工程C確認待ち", "消す面（赤）とパーツ分けを見て OK（確定）／直して", true)}
           ${arrow("OK（確定）")}
-          ${step("🎨", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。ここから先は手作業")}
+          ${step("🎨", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えたらカードの「テクスチャ完了 → 確認へ」")}
+          ${step("🔍", "テクスチャ確認待ち", "PCが5分以内にテクスチャを貼った3Dを作る。「テクスチャ込みの3Dで見る」で確かめて OK → Unityへ／塗り直す", true)}
+          ${step("🧩", "Unity待ち", "Unity でプレハブにする（テクスチャは Textures/、FBX は _prep/ の単位ごとの物）。ここから先は手作業")}
         </div>
       </section>
 
@@ -1090,7 +1104,9 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     "40_approved": { label: "OK済み", hint: "Blenderで整えたら「整えた」を押すと、工程Cが仕上げ前処理をします。形から作り直したいときは「直して」", mode: "prep" },
     "50_prep": { label: "工程C待ち", hint: "次のライン（または「今すぐ」）で工程Cが仕上げ前処理をします" },
     "55_prep_review": { label: "工程C確認待ち", hint: "消す面とパーツ分けを確認して OK（確定）／直して。Blenderで整え直したいときは「整え直す」" },
-    "60_texturing": { label: "テクスチャ待ち", hint: "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。もう一度整えたいときは「OK済みに戻す」", mode: "texturing" },
+    "60_texturing": { label: "テクスチャ待ち", hint: "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えて Textures/ に書き出したら「テクスチャ完了」。もう一度整えたいときは「整え直す」", mode: "texturing" },
+    "65_texture_review": { label: "テクスチャ確認待ち", hint: "「テクスチャ込みの3Dで見る」で確かめて、OK なら Unity 待ちへ。直すなら「塗り直す」", mode: "tex_review" },
+    "70_unity": { label: "Unity待ち", hint: "Unity でプレハブにする。テクスチャは Textures/、FBX は _prep/ の単位ごとの物（Cone・Bar など）" },
     "99_rejected": { label: "ボツ", hint: "作らないことにしたもの。やっぱり作るなら「確認待ちに戻す」", mode: "rejected" },
   };
   let curStage = null, prevTab = "line";
@@ -1145,6 +1161,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     }
     const v = e.target.closest("[data-v3d]");
     if (v && data) { const it = data.items.find(i => i.id === v.dataset.v3d); if (it && it.glb) open3d(it); }
+    const vt = e.target.closest("[data-v3d-tex]");
+    if (vt && data) { const it = data.items.find(i => i.id === vt.dataset.v3dTex); if (it && it.tex && it.tex.glb) open3d(it, false, true); }
     const vc = e.target.closest("[data-v3d-check]");
     if (vc && data) { const it = data.items.find(i => i.id === vc.dataset.v3dCheck); if (it && it.prep && it.prep.check_glb) open3d(it, vc.dataset.layerStart || true); }
   });
@@ -1183,14 +1201,14 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     ["CHK_low", "ローポリ", "ローポリ＝実際に使う形（消す面を消して、スムーズをかけた後。色＝テクスチャセット）"],
     ["CHK_high", "ハイポリ", "ハイポリ＝ベイク用（角の丸みと円柱の細かさを法線マップに焼く元。色＝テクスチャセット）"]];
 
-  async function open3d(it, check) {   // check＝工程Cの3D確認（消す面／丸める角／ローポリ／ハイポリ）。層の名前なら、その層で開く
+  async function open3d(it, check, tex) {   // check＝工程Cの3D確認（消す面／丸める角／ローポリ／ハイポリ）。層の名前なら、その層で開く。tex＝テクスチャ込み
     if (v3d) close3d();
-    const src = check ? it.prep.check_glb : it.glb;
+    const src = tex ? it.tex.glb : check ? it.prep.check_glb : it.glb;
     const start = typeof check === "string" && CHK_LAYERS.some(x => x[0] === check) ? check : CHK_LAYERS[0][0];
     const el = document.createElement("div");
     el.className = "v3d";
     el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", short(it) + " の3D");
-    el.innerHTML = `<div class="v3d-head"><h3>${esc(short(it))}${check ? " ・ 工程Cの確認" : ""}</h3><button type="button" class="btn v3d-close">閉じる</button></div>
+    el.innerHTML = `<div class="v3d-head"><h3>${esc(short(it))}${check ? " ・ 工程Cの確認" : tex ? " ・ テクスチャ" : ""}</h3><button type="button" class="btn v3d-close">閉じる</button></div>
       ${check ? `<div class="v3d-layers" role="group" aria-label="見るもの">${CHK_LAYERS.map(([k, l]) => `<button type="button" class="btn" data-layer="${k}" aria-pressed="${k === start}">${l}</button>`).join("")}</div>` : ""}
       <div class="v3d-stage"><p class="v3d-msg">読み込み中…</p><p class="v3d-hint">${check ? esc(CHK_LAYERS.find(x => x[0] === start)[2]) : "1本指で回転・ピンチでズーム・2本指で移動"}</p></div>
       <div class="v3d-foot"><small></small>
@@ -1232,8 +1250,16 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       scene.add(grid);
       const camera = new THREE.PerspectiveCamera(35, 1, maxd / 100, maxd * 100);
       scene.add(camera);
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, 1.6));
-      const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, tex ? 0.6 : 1.6));
+      if (tex) {   // テクスチャ込みは、金属・つやが分かるよう部屋の映り込み（環境光）を足す
+        try {
+          const { RoomEnvironment } = await import("three/addons/environments/RoomEnvironment.js");
+          const pm = new THREE.PMREMGenerator(renderer);
+          scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+          pm.dispose();
+        } catch (e) {}
+      }
+      const sun = new THREE.DirectionalLight(0xffffff, tex ? 1.4 : 2.2);
       sun.position.set(0.5, 1, 0.8);
       camera.add(sun);
       const controls = new OrbitControls(camera, renderer.domElement);
@@ -1255,7 +1281,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       const loop = () => { if (!st.alive) return; controls.update(); renderer.render(scene, camera); st.raf = requestAnimationFrame(loop); };
       loop();
       msg.hidden = true;
-      el.querySelector(".v3d-foot small").textContent = `${Math.round(tris).toLocaleString()} tris（ベベル込み）`;
+      el.querySelector(".v3d-foot small").textContent = `${Math.round(tris).toLocaleString()} tris${tex ? "（ローポリ）" : "（ベベル込み）"}`;
       el.querySelector(".v3d-reset").addEventListener("click", home);
       // ワイヤー：なし → 三角（GPUが描く三角形）→ 四角（Blender の辺）→ なし。線は面の上に重ねる。押したときに初めて作る
       const lineMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.45 });
@@ -1264,7 +1290,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       const hasQuad = !check || Object.keys(chkEdges).length > 0;
       const wires = {}, WIRE_NEXT = hasQuad ? { off: "tri", tri: "quad", quad: "off" } : { off: "tri", tri: "off" }, WIRE_TEXT = { off: "なし", tri: "三角", quad: "四角" };
       let wireMode = "off", curLayer = check ? start : null;
-      const quadPath = () => check ? chkEdges[curLayer] : it.glb + ".edges.bin";
+      const quadPath = () => check ? chkEdges[curLayer] : (tex ? it.tex.glb : it.glb) + ".edges.bin";
       const makeQuad = async () => {
         const p = quadPath();
         if (!p) return new THREE.Group();   // この層には線がない
@@ -1363,7 +1389,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-24.2";
+  const APP_VERSION = "2026-10-24.3";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
