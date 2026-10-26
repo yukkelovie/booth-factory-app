@@ -696,7 +696,6 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   function renderHelp() {
     const el = document.getElementById("view-help");
-    const ex = data && (byStage("20_ready").concat(data.items).find(i => i.img && i.img.sheet));
     const step = (ico, title, sub, you) => `<div class="fl-step${you ? " you" : ""}"><span class="fl-ico" aria-hidden="true">${ico}</span><div><b>${title}</b><small>${sub}</small></div></div>`;
     const arrow = t => `<div class="fl-arrow" aria-hidden="true">↓${t ? " " + t : ""}</div>`;
     el.innerHTML = `
@@ -774,12 +773,12 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
       <section class="help-sec" id="h-card">
         <h3>カードの見方</h3>
-        ${ex ? `<div class="anno">
-          ${pic(ex.img.sheet, ex.id + " の4面図")}
+        ${data ? `<div class="anno">
+          ${pic("guide/cone_1_blockout.jpg", "コーンの4面図")}
           <span class="tag" style="left:2%;top:2%">正面</span><span class="tag" style="left:52%;top:2%">左側面</span>
           <span class="tag" style="left:2%;top:52%">上面</span><span class="tag" style="left:52%;top:52%">パース</span>
         </div>
-        <p class="muted" style="font-size:12px">例：${esc(ex.name)}</p>` : '<p class="muted">（データを読み込むと、ここに本物の4面図が出ます）</p>'}
+        <p class="muted" style="font-size:12px">例：カラーコーン2本＋コーンバー（ブロックアウト。<a href="#h-example">コーンで見る工程</a>の①と同じ）</p>` : '<p class="muted">（データを読み込むと、ここに4面図の例が出ます）</p>'}
         <p><b>4面図</b>：正面・左側面・上面・パース（斜めから）の4方向。形と比率をここで見ます。ガラスは半透明で描くので、後ろの部品も見えます。<b>4面図を押すと3D</b>が開きます（右下の「タップで3D」）。</p>
         <p style="font-size:14px"><b>確認タブの一番上</b>：今やることの件数（黄色＝あなたの番：確認待ち・C確認・整え待ち・テクスチャ確認／白＝それ以外：直し待ち・塗り待ち・Unity待ち）と、テーマの進み具合（作ったもの / アイデアの数）。マスを押すとその段の一覧へ。</p>
         <div class="chips">
@@ -1446,7 +1445,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-27.1";
+  const APP_VERSION = "2026-10-27.2";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
