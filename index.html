@@ -249,6 +249,11 @@ ol.steps { margin: 0; padding-left: 1.4em; font-size: 14px; }
 .help-sec h3 { margin: 0; font-size: 17px; font-weight: 900; }
 .help-sec p { margin: 0; }
 .help-toc { display: flex; flex-wrap: wrap; gap: 6px; }
+.ex-steps { list-style: none; padding: 0; margin: 0; }
+.ex-steps li { margin: 0 0 20px; }
+.ex-steps h4 { margin: 14px 0 6px; font-size: 15px; }
+.ex-steps p { font-size: 14px; margin: 6px 0 0; }
+.ex-steps .pic { width: 100%; border-radius: 10px; }
 .help-toc a { font-size: 13px; color: var(--ink); text-decoration: none; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
 .fl { display: grid; gap: 0; justify-items: stretch; }
 .fl-step { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); }
@@ -697,7 +702,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     el.innerHTML = `
       <h2>使い方</h2>
       <nav class="help-toc" aria-label="目次">
-        <a href="#h-flow">工場の流れ</a><a href="#h-morning">毎朝7時</a><a href="#h-card">カードの見方</a>
+        <a href="#h-flow">工場の流れ</a><a href="#h-example">コーンで見る工程</a><a href="#h-morning">毎朝7時</a><a href="#h-card">カードの見方</a>
         <a href="#h-reply">返事のしかた</a><a href="#h-tex">テクスチャ（Substance）</a><a href="#h-now">今すぐ動かす</a><a href="#h-stages">ラインの見方</a><a href="#h-faq">よくある質問</a>
       </nav>
 
@@ -729,6 +734,29 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           ${step("🔍", "テクスチャ確認待ち", "PCが5分以内にテクスチャを貼った3Dを作る。「テクスチャ込みの3Dで見る」で確かめて OK → Unityへ／塗り直す", true)}
           ${step("🧩", "Unity待ち", "Unity でプレハブにする（テクスチャは Textures/、FBX は _prep/ の単位ごとの物）。テクスチャを直したくなったら「塗り直す」でテクスチャ待ちへ戻せる")}
         </div>
+      </section>
+
+      <section class="help-sec" id="h-example">
+        <h3>コーンで見る工程ごとの変化</h3>
+        <p class="muted" style="font-size:13px">カラーコーン2本＋コーンバー（Traffic_Cone）が、アイデアからテクスチャまで進んだ実際の記録です。</p>
+        <ol class="ex-steps">
+          <li><h4>① 工程A・B：ブロックアウト（10/21）</h4>${pic("guide/cone_1_blockout.jpg", "コーンのブロックアウトの4面図")}
+            <p>工場が形・比率・部品の分け方だけを作った状態。部品ごとに色を変えてあるのは見分け用（あとでIDマップになる）。確認待ちで「直して」を3回：①頭を丸めて赤一色に・反射帯は形にしない（テクスチャで描く）・バーの継ぎ目をなくす ②実物の写真を見せて「台も赤いコーンの一部で、その上に黒い重し」に ③コーンの下に穴（あとで工程Cで中空にするため）。この時点で 1,556 tris（2本分）。</p></li>
+          <li><h4>② OK済み：Blender で整える（10/22）</h4>${pic("guide/cone_2_tuned.jpg", "整えたコーン（ワイヤー付き）")}
+            <p>OK を出した後、自分で .blend を開いて整え、「整えた」に「底を開けて中空に 厚み4ミリほど」とメモを付けて送った。工程Cへの注文はこのメモで伝える。</p></li>
+          <li><h4>③ 工程C：見えない面を消す</h4>${pic("guide/cone_3_hidden.jpg", "消す面（赤）")}
+            <p>赤＝部品に完全に埋まって見えない面（消す）。オレンジ＝一部だけ隠れる面（残す）。縞のバーの継ぎ目などが消える。重しやバーのように外せる部品は、当たり面を消さずに残す。</p></li>
+          <li><h4>④ 工程C：ハイポリで丸める角</h4>${pic("guide/cone_4_bevel.jpg", "ハイポリで丸める角（オレンジ）")}
+            <p>オレンジ＝ハイポリで丸める角（見やすいよう太く描いてある）。50°以上曲がった角だけを、部品の肉厚の8%で丸める。縞の境目のようにまっすぐつながる所は丸めない。</p></li>
+          <li><h4>⑤ 工程C：ローポリとハイポリ</h4>${pic("guide/cone_6_lowhigh.jpg", "ローポリ（左）とハイポリ（右）")}
+            <p>左＝ローポリ（ゲームで使う形。輪は16角形、バーは8角形、876 tris）。右＝ハイポリ（ベイク用。丸い部品は32角形にして角も丸めてある、6,308 tris）。ハイポリの細かさを法線マップに焼いて、ローポリをなめらかに見せる。余分な分割（台や重しの外周の点）もここでローポリだけ整理した。</p></li>
+          <li><h4>⑥ 工程C：UV（テクスチャセット Main 1枚）</h4>${pic("guide/cone_5_uv.jpg", "UV展開図")}
+            <p>コーン・重し・バーを1枚のテクスチャに詰めてある。2本目のコーンは同じ形なので作らず、1本分だけ（Unity で並べる）。長いバーは途中で切って島を細長くしすぎない。</p></li>
+          <li><h4>⑦ テクスチャ（Substance Painter・10/24）</h4>${pic("guide/cone_7_textured.jpg", "テクスチャを貼ったコーン")}
+            <p>バーを離したベイク用の FBX で焼いて、全部入りのローポリで塗った。書き出し（BaseMap・Normal・Occlusion・MetallicSmoothness）→「テクスチャ完了」→ アプリでテクスチャ込みの3Dを確認 → OK で Unity待ちへ。途中でバーの縞を10本→9本（両端を黒）に変えた。</p></li>
+          <li><h4>⑧ Unity（これから）</h4>
+            <p>単位ごとの FBX（Cone・Bar）とテクスチャ4枚で、マテリアル1つとプレハブ（コーン・バー・セット）を作って unitypackage に。</p></li>
+        </ol>
       </section>
 
       <section class="help-sec" id="h-morning">
@@ -1418,7 +1446,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-24.5";
+  const APP_VERSION = "2026-10-27.1";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
