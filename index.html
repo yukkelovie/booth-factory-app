@@ -702,7 +702,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       <h2>使い方</h2>
       <nav class="help-toc" aria-label="目次">
         <a href="#h-flow">工場の流れ</a><a href="#h-example">コーンで見る工程</a><a href="#h-morning">毎朝7時</a><a href="#h-card">カードの見方</a>
-        <a href="#h-reply">返事のしかた</a><a href="#h-tex">テクスチャ（Substance）</a><a href="#h-now">今すぐ動かす</a><a href="#h-stages">ラインの見方</a><a href="#h-faq">よくある質問</a>
+        <a href="#h-reply">返事のしかた</a><a href="#h-tex">テクスチャ（Substance）</a><a href="#h-unity">Unity</a><a href="#h-now">今すぐ動かす</a><a href="#h-stages">ラインの見方</a><a href="#h-faq">よくある質問</a>
       </nav>
 
       <section class="help-sec" id="h-flow">
@@ -731,7 +731,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           ${arrow("OK（確定）")}
           ${step("🎨", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えたらカードの「テクスチャ完了 → 確認へ」")}
           ${step("🔍", "テクスチャ確認待ち", "PCが5分以内にテクスチャを貼った3Dを作る。「テクスチャ込みの3Dで見る」で確かめて OK → Unityへ／塗り直す", true)}
-          ${step("🧩", "Unity待ち", "Unity でプレハブにする（テクスチャは Textures/、FBX は _prep/ の単位ごとの物）。テクスチャを直したくなったら「塗り直す」でテクスチャ待ちへ戻せる")}
+          ${step("🧩", "Unity待ち", "工場が Unity に持ち込むフォルダ（FBX・テクスチャ）をそろえる。Unity のメニュー「Catalana → 工場から取り込む」で、マテリアルとプレハブ（単位ごと＋セット）まで自動でできる（<a href=\"#h-unity\">Unity</a>）。テクスチャを直したくなったら「塗り直す」でテクスチャ待ちへ戻せる", true)}
         </div>
       </section>
 
@@ -753,8 +753,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
             <p>コーン・重し・バーを1枚のテクスチャに詰めてある。2本目のコーンは同じ形なので作らず、1本分だけ（Unity で並べる）。長いバーは途中で切って島を細長くしすぎない。</p></li>
           <li><h4>⑦ テクスチャ（Substance Painter・10/24）</h4>${pic("guide/cone_7_textured.jpg", "テクスチャを貼ったコーン")}
             <p>バーを離したベイク用の FBX で焼いて、全部入りのローポリで塗った。書き出し（BaseMap・Normal・Occlusion・MetallicSmoothness）→「テクスチャ完了」→ アプリでテクスチャ込みの3Dを確認 → OK で Unity待ちへ。途中でバーの縞を10本→9本（両端を黒）に変えた。</p></li>
-          <li><h4>⑧ Unity（これから）</h4>
-            <p>単位ごとの FBX（Cone・Bar）とテクスチャ4枚で、マテリアル1つとプレハブ（コーン・バー・セット）を作って unitypackage に。</p></li>
+          <li><h4>⑧ Unity（10/27〜）</h4>
+            <p>工場が単位ごとの FBX（Cone・Bar）とテクスチャ4枚を <code>Unity/Traffic_Cone/</code> にそろえ、Unity の「Catalana → 工場から取り込む」で、マテリアル1つとプレハブ3つ（Traffic_Cone_Cone・Traffic_Cone_Bar・2本＋バーを並べた Traffic_Cone_Set）が自動でできる。あとは見た目を確かめて unitypackage に書き出す（<a href="#h-unity">Unity</a>）。</p></li>
         </ol>
       </section>
 
@@ -835,9 +835,40 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <tr><th>Occlusion</th><td>Ambient occlusion（Mixed AO でも可）</td></tr>
           <tr><th>MetallicSmoothness</th><td>RGB＝Metallic、A＝「変換されたマップ」の <b>Glossiness</b>（チャンネルの Glossiness だと全面同じ値になる。Glossiness² は別物）</td></tr>
         </table>
-        <p style="font-size:14px">光る部分がある物（灯り・照明）だけ Emissive を足す。Unity では Standard マテリアルの Albedo・Metallic・Normal Map（取り込み設定で Texture Type を Normal map に）・Occlusion・Emission に入れる。1つのマテリアルを単位ごとの FBX に共通で使う。</p>
+        <p style="font-size:14px">光る部分がある物（灯り・照明）だけ Emissive を足す。Unity では Standard マテリアルの Albedo・Metallic・Normal Map・Occlusion・Emission に入る（取り込みスクリプトが自動でやる。<a href="#h-unity">Unity</a>）。1つのマテリアルを単位ごとの FBX に共通で使う。</p>
         <p style="font-size:14px"><b>塗り終えたら</b>：テクスチャ待ちのカードの「テクスチャ完了 → 確認へ」→ 5分以内にテクスチャ確認待ちへ移って、テクスチャ込みの3Dが見られる → OK → Unityへ／塗り直す。カードに「前の書き出しのまま」（一緒に書き出したはずの物が古い＝テンプレートから抜けている）や「金属の所の色が真っ黒」（BaseMap に Diffuse が入っている）と出たら、書き出しを見直す。</p>
         <p style="font-size:14px"><b>注意</b>：塗り始めたら工程Cは作り直さない（作り直すと形が同じでも UV の配置が変わって、焼き直しになる）。段を移るとフォルダごと動くので、Substance の「最近使ったプロジェクト」は古い場所を指す（今の場所の <code>Substance/</code> から開く）。</p>
+      </section>
+
+      <section class="help-sec" id="h-unity">
+        <h3>Unity（プレハブと unitypackage）</h3>
+        <p style="font-size:14px">Unity待ちになると、工場がアイテムのフォルダの <code>Unity\\名前\\</code> に、Unity に持ち込む物をそろえます（アプリの反映のたび。Claude は使わない）。マテリアルとプレハブは Unity の中でしか正しく作れない（中のIDでつながっている）ので、Unity 側の小さなスクリプトが作ります。対象は <b>Unity 2022.3・ビルトイン（Standard シェーダー）</b>＝VRChat と同じ。</p>
+        <p style="font-size:14px"><b>最初に1回だけ</b>：<code>_factory\\unity\\CatalanaFactoryImporter.cs</code> を、Unity のプロジェクトの <code>Assets/CatalanaTools/Editor/</code> に入れる（商品フォルダ CatalanaAssets の外。unitypackage には入れない）。上のメニューに「Catalana」が出れば OK。工場の場所は <code>G:\\マイドライブ\\booth\\products\\_factory\\70_unity</code> が最初から入っている（違うときは「Catalana → 工場の場所を変える」）。</p>
+        <p style="font-size:14px"><b>毎回の流れ</b>：</p>
+        <ol style="font-size:14px">
+          <li>Unity で <b>Catalana → 工場から取り込む</b>。Unity待ちの物が全部 <code>Assets/CatalanaAssets/StreetPack/名前/</code> に入り、そのまま組み立てまで終わる（フォルダを Project 窓にドラッグして入れても、入れた時点で自動で組み立てる）</li>
+          <li>Prefabs のプレハブをシーンに置いて見た目を確かめる。直したい所はプレハブを直接直してよい（次に取り込んでも、あるプレハブとマテリアルは上書きしない）</li>
+          <li>書き出し：単品は <code>StreetPack/名前</code> フォルダ、パックは <code>StreetPack</code> フォルダを右クリック → <b>Export Package…</b> → <code>名前_v1.0.unitypackage</code></li>
+        </ol>
+        <p style="font-size:14px"><b>Unity の中の形</b>（アイテムごとに1フォルダ）：</p>
+        <pre style="font-size:12px;overflow-x:auto">Assets/CatalanaAssets/StreetPack/
+  Traffic_Cone/
+    FBX/        Traffic_Cone_Cone.fbx, Traffic_Cone_Bar.fbx
+    Textures/   _BaseMap, _Normal, _Occlusion, _MetallicSmoothness
+    Materials/  Traffic_Cone_Main.mat
+    Prefabs/    Traffic_Cone_Cone, Traffic_Cone_Bar, Traffic_Cone_Set
+  Bus_Stop/
+    …</pre>
+        <p style="font-size:14px"><b>単品とパック</b>：単品もパックも同じ場所・同じ中身なので、単品を買った人が後からパックを入れても、同じファイルが上書きされるだけで二重にならない（同じ Unity プロジェクトから書き出すこと。別のプロジェクトだと中のIDが変わって二重になる）。</p>
+        <p style="font-size:14px"><b>スクリプトがやること</b>：</p>
+        <ul style="font-size:14px">
+          <li>テクスチャの設定：Normal＝法線マップ、Occlusion・MetallicSmoothness＝sRGB オフ（色ではなく数値として読む）</li>
+          <li>FBX の設定：カメラ・ライト・アニメなし。マテリアルを工場のマテリアルに差し替え</li>
+          <li>マテリアル：Standard。Albedo＝BaseMap、Metallic＝MetallicSmoothness（なめらかさは A）、Normal Map、Occlusion（光る物は Emission、名前に Glass が付くセットは半透明）</li>
+          <li>プレハブ：販売単位ごと（外せる付属は子）。一番上は回転なしの入れ物なので、置いたとき回転が (0,0,0)。当たり判定（MeshCollider）付き</li>
+          <li>セットのプレハブ（名前_Set）：単位のプレハブを入れ子で並べる。単位を直せばセットも直る</li>
+        </ul>
+        <p style="font-size:14px"><b>作り直したいとき</b>：Project 窓でアイテムのフォルダを選んで <b>Catalana → 選んだフォルダを作り直す（プレハブも）</b>。手で直した所は消える。テクスチャを塗り直したときは、作り直さなくても「工場から取り込む」だけで新しい絵に変わる。</p>
       </section>
 
       <section class="help-sec" id="h-now">
@@ -873,7 +904,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <tr><th>C確認待ち</th><td class="you">工程Cの結果の確認待ち</td></tr>
           <tr><th>テクスチャ待ち</th><td class="you">Substance Painter で塗って、Textures/ に書き出したら「テクスチャ完了」</td></tr>
           <tr><th>テクスチャ確認待ち</th><td class="you">テクスチャ込みの3Dを見て OK → Unityへ／塗り直す</td></tr>
-          <tr><th>Unity待ち</th><td class="you">Unity でプレハブにする番（手作業）</td></tr>
+          <tr><th>Unity待ち</th><td class="you">Unity で「Catalana → 工場から取り込む」を押して、見た目を確かめて unitypackage にする番</td></tr>
           <tr><th>ボツ</th><td>作らないことにしたもの</td></tr>
         </table>
         <p class="muted" style="font-size:13px">太字があなたの出番。確認タブの赤い数字は、確認待ち＋C確認待ち＋テクスチャ確認待ちの件数です。</p>
@@ -891,7 +922,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <dt>「書き込みの権限がありません」と出る</dt><dd>鍵が「読むだけ」で作られています。GitHub の Fine-grained tokens でその鍵を開いて Edit → Contents を Read and write にして Update。鍵の貼り直しはいりません。</dd>
           <dt>スマホを無くした</dt><dd>GitHub の Settings → Developer settings → Fine-grained tokens で、スマホ用のトークンを Delete してください。</dd>
           <dt>ハイポリの角の丸め方を変えたい</dt><dd>工程Cは、部品ごとに50°以上曲がった角（八角形の丸棒の45°は丸めない）を、部品の肉厚の8%（1〜8mm）の幅で丸めます。全体が3cm未満の小物（ビス頭など）は丸めません。同じグループ（ひとつの組み立て）で触れ合っている部品（脚とレール、縞のバーなど）は1つにつなげてから丸めるので、継ぎ目に溝や段はできません。違う部品との境目（埋まっている面の辺、部品が乗っている辺）も丸めません（境目を丸めると、法線マップに溝の線が出るため）。地面に接する辺は、ポール・街灯のように<b>地面に固定</b>されている物は丸めず、ベンチ・自販機のように<b>置いてある</b>物は丸めます（どちらかはカードのチップに出ます。違っていたら「直して」のメモで「これは固定」「これは置いてある」と書いてください）。工程C確認待ちのカードの「ハイポリで丸める角」で、オレンジの所が丸まります。<br>変えたいときは2通り：①Blenderで整えるとき、丸めたい辺にだけ<b>ベベルウェイト</b>を付ける（編集モードで辺を選んで、サイドバー［N］の「アイテム」タブにあるベベルウェイト、または 辺メニュー →「辺のベベルウェイト」）。印を付けた部品は、印の辺だけ丸まる（1.0＝ふつうの幅、0.5＝半分）。②「整えた」や「直して」のメモに「ビスも丸めて」「扉は丸めないで」「全体に丸みを強く」などと書く。</dd>
-          <dt>同じ物を並べたセット（コーン2本＋バーなど）は？</dt><dd>工程Cが「販売単位」に分けます。同じ形の2つ目以降は作らず1つ分だけ作り、単位ごとにFBX（ピボットが原点、外せる付属は子オブジェクト）を書き出します。セットは Unity で、単位のプレハブを並べた入れ子のプレハブとして組みます（並べる位置は工程C確認待ちのカードの「セットの並べ方」）。1つ直せばセットも直ります。</dd>
+          <dt>同じ物を並べたセット（コーン2本＋バーなど）は？</dt><dd>工程Cが「販売単位」に分けます。同じ形の2つ目以降は作らず1つ分だけ作り、単位ごとにFBX（ピボットが原点、外せる付属は子オブジェクト）を書き出します。セットは Unity の取り込みスクリプトが、単位のプレハブを並べた入れ子のプレハブ（名前_Set）として自動で組みます（並べる位置は工程C確認待ちのカードの「セットの並べ方」と同じ）。単位のプレハブを1つ直せばセットも直ります。</dd>
           <dt>消す面や丸める角を3Dで見たい</dt><dd>工程C確認待ちのカードの「3Dで確認（消す面／丸める角／ローポリ／ハイポリ）」を押すと、上のボタンで4つを切り替えて回して見られます。カードの「消す面」「丸める角」「パーツ分け」（＝ローポリ）の画像を押しても、それぞれの層で開きます。<b>消す面</b>：赤＝消す、オレンジ＝一部だけ隠れる（残す）、半透明＝残す。<b>丸める角</b>：オレンジ＝ハイポリで丸める角（太めに描いてある）。<b>ローポリ</b>：実際に使う形（消す面を消してスムーズをかけた後）。<b>ハイポリ</b>：ベイク用。画像では見えにくい底や内側（重しの底面、コーンの中など）の確認に。下の「ワイヤー」は どの層でも なし → 三角 → 四角 と切り替わり、層を切り替えると線もその層の形に変わります（四角＝Blender の辺。ローポリ・ハイポリの割り方の確認に）。</dd>
           <dt>重しや蓋など、取り外せる部品は？</dt><dd>載せてある・はめてあるだけで外せる部品（コーンの重し・コーンバー、蓋、置き物など）は、工程Cが「取り外せる部品」として扱うと、ほかの部品と当たっている面を消さずに残し、そこの角も丸めます（外したときに見えるため）。工程Cが判断できないこともあるので、「整えた」のメモに「重しとバーは取り外せる部品」のように書いておくと確実です。</dd>
           <dt>縞のバーみたいに色の境目がある物は？</dt><dd>ローポリでは色の境目で分割しません（同じ断面でつないだ継ぎ目は頂点を1つにまとめて線を消す）。色はテクスチャで塗ります。黒と黄色などの色分けのマスク（ID マップ）は、ハイポリには境目が残っているので、ハイポリの ColorID から焼けます。長い筒はUVが細長くなりすぎないよう、色とは関係ない所で何か所か切ってあります。</dd>
@@ -1445,7 +1476,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-27.2";
+  const APP_VERSION = "2026-10-27.3";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
