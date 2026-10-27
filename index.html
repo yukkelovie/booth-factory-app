@@ -849,7 +849,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <ol style="font-size:14px">
           <li>Unity で <b>Catalana → 工場から取り込む</b>。Unity待ちの物が全部 <code>Assets/CatalanaAssets/StreetPack/名前/</code> に入り、そのまま組み立てまで終わる（フォルダを Project 窓にドラッグして入れても、入れた時点で自動で組み立てる）</li>
           <li>Prefabs のプレハブをシーンに置いて見た目を確かめる。直したい所はプレハブを直接直してよい（次に取り込んでも、あるプレハブとマテリアルは上書きしない）</li>
-          <li>書き出し：単品は <code>StreetPack/名前</code> フォルダ、パックは <code>StreetPack</code> フォルダを選んで <b>Catalana → 選んだフォルダを unitypackage に書き出す</b>（保存先はアイテムのフォルダ、名前は <code>名前_v1.0.unitypackage</code> が最初から入っている）。工場の設計図（<code>.factory_item.json</code>）は Unity に取り込まれないので、商品には入らない</li>
+          <li>書き出し：単品は <code>StreetPack/名前</code> フォルダ、パックは <code>StreetPack</code> フォルダを選んで <b>Catalana → 選んだフォルダを unitypackage に書き出す</b>。保存画面は工場の外の売り物の置き場で開く：単品は <code>products\\StreetPack\\名前\\</code>、パックは <code>products\\StreetPack\\</code>（今までの LockerPack などと同じ並び。工場のフォルダは品物と一緒に動いたり作り直されたりするので置かない）。名前は <code>名前_v1.0.unitypackage</code>、前の版があれば次の版（v1.1 など）が最初から入っている。工場の設計図（<code>.factory_item.json</code>）は Unity に取り込まれないので、商品には入らない</li>
         </ol>
         <p style="font-size:14px"><b>Unity の中の形</b>（アイテムごとに1フォルダ）：</p>
         <pre style="font-size:12px;overflow-x:auto">Assets/CatalanaAssets/StreetPack/
@@ -1478,7 +1478,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-27.7";
+  const APP_VERSION = "2026-10-27.8";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
