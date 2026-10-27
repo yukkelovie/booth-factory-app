@@ -402,7 +402,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   const short = it => it.name.split("／")[0];
 
   const LABEL = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた", prep_ok: "工程C確定", prep_fix: "工程Cの直し", back_ok: "OK済みに戻す", unreject: "ボツ取り消し",
-    tex_done: "テクスチャ完了", tex_ok: "テクスチャOK", tex_fix: "塗り直し" };
+    tex_done: "テクスチャ完了", tex_ok: "テクスチャOK", tex_fix: "塗り直し", unity_done: "Unity完了", released: "出品した", unity_back: "Unityに戻す" };
   const MODES = {
     review: { acts: ["ok", "fix", "reject"], cls: "", note: { fix: ["直してほしいこと", "例：支柱をもう少し太く。屋根はフラットに"] } },
     // OK済みからも「直して」で作り直しに戻せる（Blenderで整えた .blend は _backup に残る）
@@ -414,12 +414,16 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     texturing: { acts: ["tex_done", "back_ok"], cls: "", note: {} },
     tex_review: { acts: ["tex_ok", "tex_fix"], cls: "", note: { tex_fix: ["塗り直すところのメモ（なくてもOK）", "例：バーの黄色をもう少し濃く"] } },
     // Unity待ちからも塗り直しに戻せる（フォルダごと＝.spp・テクスチャ・FBX もテクスチャ待ちへ）
-    unity: { acts: ["tex_fix"], cls: "one", note: { tex_fix: ["塗り直すところのメモ（なくてもOK）", "例：コーンの汚れを少なく"] } },
+    // 出品（2026-10-28）：unitypackage を書き出したら「Unity完了」→ 出品待ち → BOOTH に出したら「出品した」→ 出品済み。版を上げるときは「Unityに戻す」
+    unity: { acts: ["unity_done", "tex_fix"], cls: "two", note: { tex_fix: ["塗り直すところのメモ（なくてもOK）", "例：コーンの汚れを少なく"] } },
+    release: { acts: ["released", "unity_back"], cls: "two", note: {} },
+    released: { acts: ["unity_back"], cls: "one", note: { unity_back: ["直すところのメモ（なくてもOK）", "例：v1.1 でコライダーを箱に"] } },
     rejected: { acts: ["unreject"], cls: "one", note: {} },
   };
   const BTN_TEXT = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた → 工程Cへ", prep_ok: "OK（確定）", prep_fix: "直して",
-    back_ok: "OK済みに戻す（整え直す）", unreject: "確認待ちに戻す", tex_done: "テクスチャ完了 → 確認へ", tex_ok: "OK → Unityへ", tex_fix: "塗り直す" };
-  const BTN_TEXT_IN = { prep_review: { back_ok: "整え直す" }, texturing: { back_ok: "整え直す" }, unity: { tex_fix: "塗り直す（テクスチャ待ちへ戻す）" } };   // 3つ並ぶところは短く
+    back_ok: "OK済みに戻す（整え直す）", unreject: "確認待ちに戻す", tex_done: "テクスチャ完了 → 確認へ", tex_ok: "OK → Unityへ", tex_fix: "塗り直す",
+    unity_done: "Unity完了 → 出品待ちへ", released: "出品した", unity_back: "Unityに戻す（版を上げる）" };
+  const BTN_TEXT_IN = { prep_review: { back_ok: "整え直す" }, texturing: { back_ok: "整え直す" }, unity: { unity_done: "Unity完了", tex_fix: "塗り直す" }, release: { unity_back: "Unityに戻す" } };   // 3つ並ぶところは短く
   const NOTE_REQUIRED = ["fix", "prep_fix"];
   // メモの定型文（押すとメモ欄に足す。◯ は選んだ状態になるので、そのまま数字を打てる）
   const TEMPLATES = {
@@ -475,6 +479,14 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   const historyList = it => (it.history || []).length ? `<details class="sub"><summary>歩み（${it.history.length}）</summary>
       <ol class="hist">${it.history.map(e => `<li><time>${fmtAt(e.at)}</time><span>${esc(e.what)}</span></li>`).join("")}</ol></details>` : "";
 
+  // Unity から書き出した unitypackage（products\<パック>\<Item>\ にある物。Unity待ち・出品待ち・出品済みだけ）
+  function pkgRow(it) {
+    if (!it.packages) return "";
+    return it.packages.length
+      ? `<p class="meta">unitypackage：${it.packages.map(n => `<code>${esc(n)}</code>`).join("・")}</p>`
+      : `<p class="meta">unitypackage：まだありません（Unity で書き出すと <code>products\\StreetPack\\${esc(it.id)}\\</code> に入ります）</p>`;
+  }
+
   function card(it, mode) {
     const d = it.dims || [0, 0, 0];
     const fb = it.feedback ? `<details class="sub"><summary>feedback.md</summary><pre>${esc(it.feedback)}</pre></details>` : "";
@@ -498,6 +510,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         ${it.img.uv ? `<h4>チェッカー（市松模様がゆがんでいなければOK）</h4>${pic(it.img.uv, "UVチェッカー")}` : ""}
       </details>` : ""}
       ${it.prep ? uvSets(it) : ""}
+      ${pkgRow(it)}
       ${fb}
       ${pathRow(it)}
       <p class="meta">ビルド ${esc(it.built)}</p>
@@ -567,7 +580,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   // 確認タブの一番上：今やること（あなたの番＝黄色）と工場の番、テーマの進み具合。マスを押すとその段の一覧
   function summary() {
     const tiles = [["20_ready", "確認待ち", true], ["55_prep_review", "C確認", true], ["40_approved", "整え待ち", true],
-      ["65_texture_review", "テクスチャ確認", true], ["30_feedback", "直し待ち", false], ["60_texturing", "塗り待ち", false], ["70_unity", "Unity待ち", false]];
+      ["65_texture_review", "テクスチャ確認", true], ["30_feedback", "直し待ち", false], ["60_texturing", "塗り待ち", false], ["70_unity", "Unity待ち", false], ["80_release", "出品待ち", false]];
     const done = data.ideas_done || 0, total = data.ideas_total || 0;
     return `<section class="sum" aria-label="今の状況">
       <div class="sum-tiles">${tiles.map(([s, l, you]) => { const n = byStage(s).length;
@@ -604,7 +617,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     const sections = [["30_feedback", "直し待ち", "翌朝7:00の工程Aが作り直します（1回に3件まで。古い順）"], ["10_blockout", "工程A済み", "工程Bの検品待ち"],
       ["50_prep", "工程C待ち", "翌朝7:00の工程Cで、見えない面の削除・パーツ分け・UV・FBX書き出しを仮でやります"],
       ["60_texturing", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えたら「テクスチャ完了」"],
-      ["65_texture_review", "テクスチャ確認待ち", "テクスチャ込みの3Dを見て OK なら Unity 待ちへ"], ["70_unity", "Unity待ち", "Unity でプレハブにする（テクスチャは Textures/、FBX は _prep/ の単位ごとの物）"],
+      ["65_texture_review", "テクスチャ確認待ち", "テクスチャ込みの3Dを見て OK なら Unity 待ちへ"], ["70_unity", "Unity待ち", "Unity で「Catalana → 工場から取り込む」→ 見た目を確かめて unitypackage に書き出したら「Unity完了」"],
+      ["80_release", "出品待ち", "サムネ・説明文をそろえて BOOTH に出したら「出品した」"], ["90_released", "出品済み", ""],
       ["99_rejected", "ボツ", ""]];
     el.innerHTML = runPanel() + `
       <ol class="flow" aria-label="ラインの状況（押すと一覧へ）">${counts.map(([n, l, id]) => `<li class="${l === "確認待ち" && n ? "hot" : ""}"><button type="button" class="flow-btn" data-open-stage="${id}" aria-label="${l} ${n}件の一覧"><b>${n}</b><span>${l}</span></button></li>`).join("")}</ol>
@@ -731,7 +745,9 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           ${arrow("OK（確定）")}
           ${step("🎨", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えたらカードの「テクスチャ完了 → 確認へ」")}
           ${step("🔍", "テクスチャ確認待ち", "PCが5分以内にテクスチャを貼った3Dを作る。「テクスチャ込みの3Dで見る」で確かめて OK → Unityへ／塗り直す", true)}
-          ${step("🧩", "Unity待ち", "工場が Unity に持ち込むフォルダ（FBX・テクスチャ）をそろえる。Unity のメニュー「Catalana → 工場から取り込む」で、マテリアルとプレハブ（単位ごと＋セット）まで自動でできる（<a href=\"#h-unity\">Unity</a>）。テクスチャを直したくなったら「塗り直す」でテクスチャ待ちへ戻せる", true)}
+          ${step("🧩", "Unity待ち", "工場が Unity に持ち込むフォルダ（FBX・テクスチャ）をそろえる。Unity のメニュー「Catalana → 工場から取り込む」で、マテリアルとプレハブ（単位ごと＋セット）まで自動でできる（<a href=\"#h-unity\">Unity</a>）。テクスチャを直したくなったら「塗り直す」でテクスチャ待ちへ戻せる。unitypackage を書き出したら「Unity完了 → 出品待ちへ」", true)}
+          ${step("🛒", "出品待ち", "サムネ・説明文（日英）・SNS文をそろえて BOOTH に出したら「出品した」で出品済みへ。カードに unitypackage があるかも出る", true)}
+          ${step("✅", "出品済み", "BOOTH に出した物。版を上げる（v1.1 など）ときは「Unityに戻す」で Unity待ちへ戻せる")}
         </div>
       </section>
 
@@ -850,6 +866,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li>Unity で <b>Catalana → 工場から取り込む</b>。Unity待ちの物が全部 <code>Assets/CatalanaAssets/StreetPack/名前/</code> に入り、そのまま組み立てまで終わる（フォルダを Project 窓にドラッグして入れても、入れた時点で自動で組み立てる）</li>
           <li>Prefabs のプレハブをシーンに置いて見た目を確かめる。直したい所はプレハブを直接直してよい（次に取り込んでも、あるプレハブとマテリアルは上書きしない）</li>
           <li>書き出し：単品は <code>StreetPack/名前</code> フォルダ、パックは <code>StreetPack</code> フォルダを選んで <b>Catalana → 選んだフォルダを unitypackage に書き出す</b>。保存画面は工場の外の売り物の置き場で開く：単品は <code>products\\StreetPack\\名前\\</code>、パックは <code>products\\StreetPack\\</code>（今までの LockerPack などと同じ並び。工場のフォルダは品物と一緒に動いたり作り直されたりするので置かない）。名前は <code>名前_v1.0.unitypackage</code>、前の版があれば次の版（v1.1 など）が最初から入っている。工場の設計図（<code>.factory_item.json</code>）は Unity に取り込まれないので、商品には入らない</li>
+          <li>アプリのカードで <b>Unity完了 → 出品待ちへ</b>。出品待ちに移った物は、工場から取り込むの対象から外れる（版を上げるときは出品待ち・出品済みの「Unityに戻す」で戻す）</li>
         </ol>
         <p style="font-size:14px"><b>Unity の中の形</b>（アイテムごとに1フォルダ）：</p>
         <pre style="font-size:12px;overflow-x:auto">Assets/CatalanaAssets/StreetPack/
@@ -905,7 +922,9 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <tr><th>C確認待ち</th><td class="you">工程Cの結果の確認待ち</td></tr>
           <tr><th>テクスチャ待ち</th><td class="you">Substance Painter で塗って、Textures/ に書き出したら「テクスチャ完了」</td></tr>
           <tr><th>テクスチャ確認待ち</th><td class="you">テクスチャ込みの3Dを見て OK → Unityへ／塗り直す</td></tr>
-          <tr><th>Unity待ち</th><td class="you">Unity で「Catalana → 工場から取り込む」を押して、見た目を確かめて unitypackage にする番</td></tr>
+          <tr><th>Unity待ち</th><td class="you">Unity で「Catalana → 工場から取り込む」を押して、見た目を確かめて unitypackage にする番。書き出したら「Unity完了」</td></tr>
+          <tr><th>出品待ち</th><td class="you">サムネ・説明文をそろえて BOOTH に出したら「出品した」</td></tr>
+          <tr><th>出品済み</th><td>BOOTH に出した物。版を上げるときは「Unityに戻す」</td></tr>
           <tr><th>ボツ</th><td>作らないことにしたもの</td></tr>
         </table>
         <p class="muted" style="font-size:13px">太字があなたの出番。確認タブの赤い数字は、確認待ち＋C確認待ち＋テクスチャ確認待ちの件数です。</p>
@@ -1195,7 +1214,9 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     "55_prep_review": { label: "工程C確認待ち", hint: "消す面とパーツ分けを確認して OK（確定）／直して。Blenderで整え直したいときは「整え直す」" },
     "60_texturing": { label: "テクスチャ待ち", hint: "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えて Textures/ に書き出したら「テクスチャ完了」。もう一度整えたいときは「整え直す」", mode: "texturing" },
     "65_texture_review": { label: "テクスチャ確認待ち", hint: "「テクスチャ込みの3Dで見る」で確かめて、OK なら Unity 待ちへ。直すなら「塗り直す」", mode: "tex_review" },
-    "70_unity": { label: "Unity待ち", hint: "Unity でプレハブにする。テクスチャは Textures/、FBX は _prep/ の単位ごとの物（Cone・Bar など）。テクスチャを直したいときは「塗り直す」でテクスチャ待ちへ（フォルダごと戻る）", mode: "unity" },
+    "70_unity": { label: "Unity待ち", hint: "Unity で「Catalana → 工場から取り込む」→ 見た目を確かめて unitypackage に書き出したら「Unity完了」で出品待ちへ。テクスチャを直したいときは「塗り直す」でテクスチャ待ちへ（フォルダごと戻る）", mode: "unity" },
+    "80_release": { label: "出品待ち", hint: "サムネ・説明文（日英）・SNS文をそろえて BOOTH に出したら「出品した」。Unity でもう一度直すなら「Unityに戻す」", mode: "release" },
+    "90_released": { label: "出品済み", hint: "BOOTH に出した物。版を上げる（v1.1 など）ときは「Unityに戻す」で Unity待ちへ", mode: "released" },
     "99_rejected": { label: "ボツ", hint: "作らないことにしたもの。やっぱり作るなら「確認待ちに戻す」", mode: "rejected" },
   };
   let curStage = null, prevTab = "line";
@@ -1478,7 +1499,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-27.8";
+  const APP_VERSION = "2026-10-28.1";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
