@@ -843,12 +843,13 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       <section class="help-sec" id="h-unity">
         <h3>Unity（プレハブと unitypackage）</h3>
         <p style="font-size:14px">Unity待ちになると、工場がアイテムのフォルダの <code>Unity\\名前\\</code> に、Unity に持ち込む物をそろえます（アプリの反映のたび。Claude は使わない）。マテリアルとプレハブは Unity の中でしか正しく作れない（中のIDでつながっている）ので、Unity 側の小さなスクリプトが作ります。対象は <b>Unity 2022.3・ビルトイン（Standard シェーダー）</b>＝VRChat と同じ。</p>
-        <p style="font-size:14px"><b>最初に1回だけ</b>：<code>_factory\\unity\\CatalanaFactoryImporter.cs</code> を、Unity のプロジェクトの <code>Assets/CatalanaTools/Editor/</code> に入れる（商品フォルダ CatalanaAssets の外。unitypackage には入れない）。上のメニューに「Catalana」が出れば OK。工場の場所は <code>G:\\マイドライブ\\booth\\products\\_factory\\70_unity</code> が最初から入っている（違うときは「Catalana → 工場の場所を変える」）。</p>
+        <p style="font-size:14px"><b>出品用のプロジェクト</b>：<code>C:\\Users\\y.togawa\\UnityProjects\\Catalana_Publish</code>（Unity 2022.3.22f1・ビルトイン。取り込みスクリプト入り）。最初に Unity Hub の「追加 → ディスクから追加」でこのフォルダを選ぶ。単品もパックも、いつもこのプロジェクトから書き出す。<code>アセット確認</code>（Unity 6・URP）は見た目の確認用なので、出品には使わない。</p>
+        <p style="font-size:14px">取り込みスクリプトの元は <code>_factory\\unity\\CatalanaFactoryImporter.cs</code>（別のプロジェクトで使うなら <code>Assets/CatalanaTools/Editor/</code> に入れる。商品フォルダ CatalanaAssets の外なので unitypackage には入らない）。工場の場所は <code>G:\\マイドライブ\\booth\\products\\_factory\\70_unity</code> が最初から入っている（違うときは「Catalana → 工場の場所を変える」）。</p>
         <p style="font-size:14px"><b>毎回の流れ</b>：</p>
         <ol style="font-size:14px">
           <li>Unity で <b>Catalana → 工場から取り込む</b>。Unity待ちの物が全部 <code>Assets/CatalanaAssets/StreetPack/名前/</code> に入り、そのまま組み立てまで終わる（フォルダを Project 窓にドラッグして入れても、入れた時点で自動で組み立てる）</li>
           <li>Prefabs のプレハブをシーンに置いて見た目を確かめる。直したい所はプレハブを直接直してよい（次に取り込んでも、あるプレハブとマテリアルは上書きしない）</li>
-          <li>書き出し：単品は <code>StreetPack/名前</code> フォルダ、パックは <code>StreetPack</code> フォルダを右クリック → <b>Export Package…</b> → <code>名前_v1.0.unitypackage</code></li>
+          <li>書き出し：単品は <code>StreetPack/名前</code> フォルダ、パックは <code>StreetPack</code> フォルダを選んで <b>Catalana → 選んだフォルダを unitypackage に書き出す</b>（保存先はアイテムのフォルダ、名前は <code>名前_v1.0.unitypackage</code> が最初から入っている）。工場の設計図（<code>.factory_item.json</code>）は Unity に取り込まれないので、商品には入らない</li>
         </ol>
         <p style="font-size:14px"><b>Unity の中の形</b>（アイテムごとに1フォルダ）：</p>
         <pre style="font-size:12px;overflow-x:auto">Assets/CatalanaAssets/StreetPack/
@@ -1476,7 +1477,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-27.4";
+  const APP_VERSION = "2026-10-27.5";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
