@@ -196,6 +196,9 @@ details.sub pre { white-space: pre-wrap; font-size: 12px; margin: 8px 0 0; font-
 .btns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .btns.one { grid-template-columns: 1fr; } .btns.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .btns.prepfix { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+.shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.shots img { width: 100%; height: auto; border-radius: 6px; display: block; }
+pre.desc { white-space: pre-wrap; word-break: break-word; font-size: 13px; max-height: 420px; overflow-y: auto; }
 .btns.prepfix .act-fix { background: var(--surface) !important; border-color: var(--line) !important; color: var(--ink); }   /* OK済みの直しは控えめに */
 .decide button, .btn { font-weight: 700; padding: 10px 6px; border-radius: 8px; border: 1px solid var(--line);
   background: var(--bg); cursor: pointer; min-height: 44px; }
@@ -487,6 +490,19 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       : `<p class="meta">unitypackage：まだありません（Unity で書き出すと <code>products\\StreetPack\\${esc(it.id)}\\</code> に入ります）</p>`;
   }
 
+  // 出品準備（工程D）：Unity で撮ったスクショと BOOTH 説明文。説明文は「コピー」で BOOTH にそのまま貼れる
+  function releaseBlock(it) {
+    const r = it.release;
+    if (!r) return "";
+    const shots = r.shots.length
+      ? `<div class="shots">${r.shots.map(s => pic(s.img, s.name)).join("")}</div><p class="legend">${r.shots.map(s => esc(s.name)).join("・")}（PC の <code>${esc(r.shots_dir)}</code> に原寸の PNG）</p>`
+      : `<p class="muted">スクショはまだありません。朝7:00のラインか「今すぐ（出品準備）」で Unity が撮ります（unitypackage が要ります）。</p>`;
+    const desc = r.desc
+      ? `<details class="sub" open><summary>BOOTH 説明文</summary><div class="row" style="justify-content:flex-end"><button type="button" class="btn copy-desc" data-item="${esc(it.id)}">コピー</button></div><pre class="desc">${esc(r.desc)}</pre><p class="legend">${esc(r.desc_path)}</p></details>`
+      : `<p class="muted">説明文はまだありません（スクショのあとに工程Dが書きます）。</p>`;
+    return `<h4>出品の準備</h4>${shots}${desc}${list("確認してほしい点", r.notes)}`;
+  }
+
   function card(it, mode) {
     const d = it.dims || [0, 0, 0];
     const fb = it.feedback ? `<details class="sub"><summary>feedback.md</summary><pre>${esc(it.feedback)}</pre></details>` : "";
@@ -511,6 +527,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       </details>` : ""}
       ${it.prep ? uvSets(it) : ""}
       ${pkgRow(it)}
+      ${releaseBlock(it)}
       ${fb}
       ${pathRow(it)}
       <p class="meta">ビルド ${esc(it.built)}</p>
@@ -618,7 +635,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       ["50_prep", "工程C待ち", "翌朝7:00の工程Cで、見えない面の削除・パーツ分け・UV・FBX書き出しを仮でやります"],
       ["60_texturing", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えたら「テクスチャ完了」"],
       ["65_texture_review", "テクスチャ確認待ち", "テクスチャ込みの3Dを見て OK なら Unity 待ちへ"], ["70_unity", "Unity待ち", "Unity で「Catalana → 工場から取り込む」→ 見た目を確かめて unitypackage に書き出したら「Unity完了」"],
-      ["80_release", "出品待ち", "サムネ・説明文をそろえて BOOTH に出したら「出品した」"], ["90_released", "出品済み", ""],
+      ["80_release", "出品待ち", "工場がスクショと BOOTH 説明文を用意します（朝7:00か「今すぐ出品準備」）。サムネを作って BOOTH に出したら「出品した」"], ["90_released", "出品済み", ""],
       ["99_rejected", "ボツ", ""]];
     el.innerHTML = runPanel() + `
       <ol class="flow" aria-label="ラインの状況（押すと一覧へ）">${counts.map(([n, l, id]) => `<li class="${l === "確認待ち" && n ? "hot" : ""}"><button type="button" class="flow-btn" data-open-stage="${id}" aria-label="${l} ${n}件の一覧"><b>${n}</b><span>${l}</span></button></li>`).join("")}</ol>
@@ -746,7 +763,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           ${step("🎨", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えたらカードの「テクスチャ完了 → 確認へ」")}
           ${step("🔍", "テクスチャ確認待ち", "PCが5分以内にテクスチャを貼った3Dを作る。「テクスチャ込みの3Dで見る」で確かめて OK → Unityへ／塗り直す", true)}
           ${step("🧩", "Unity待ち", "工場が Unity に持ち込むフォルダ（FBX・テクスチャ）をそろえる。Unity のメニュー「Catalana → 工場から取り込む」で、マテリアルとプレハブ（単位ごと＋セット）まで自動でできる（<a href=\"#h-unity\">Unity</a>）。テクスチャを直したくなったら「塗り直す」でテクスチャ待ちへ戻せる。unitypackage を書き出したら「Unity完了 → 出品待ちへ」", true)}
-          ${step("🛒", "出品待ち", "サムネ・説明文（日英）・SNS文をそろえて BOOTH に出したら「出品した」で出品済みへ。カードに unitypackage があるかも出る", true)}
+          ${step("🛒", "出品待ち", "朝7:00のライン（または「今すぐ出品準備」）で、工場が unitypackage を別の Unity プロジェクトに読み込んでスクショを撮り（Catalana_Shots。出品用プロジェクトを開いたままでよい）、工程Dが BOOTH 説明文（日英）を書く。カードでスクショと説明文（コピーボタン付き）を見て、サムネを作って BOOTH に出したら「出品した」で出品済みへ。スクショは <code>products\\StreetPack\\名前\\Screenshots\\</code>、説明文は <code>marketing\\BOOTH_説明文_名前.md</code>", true)}
           ${step("✅", "出品済み", "BOOTH に出した物。版を上げる（v1.1 など）ときは「Unityに戻す」で Unity待ちへ戻せる")}
         </div>
       </section>
@@ -923,7 +940,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <tr><th>テクスチャ待ち</th><td class="you">Substance Painter で塗って、Textures/ に書き出したら「テクスチャ完了」</td></tr>
           <tr><th>テクスチャ確認待ち</th><td class="you">テクスチャ込みの3Dを見て OK → Unityへ／塗り直す</td></tr>
           <tr><th>Unity待ち</th><td class="you">Unity で「Catalana → 工場から取り込む」を押して、見た目を確かめて unitypackage にする番。書き出したら「Unity完了」</td></tr>
-          <tr><th>出品待ち</th><td class="you">サムネ・説明文をそろえて BOOTH に出したら「出品した」</td></tr>
+          <tr><th>出品待ち</th><td class="you">工場がスクショと説明文を用意（朝7:00か「今すぐ出品準備」）。サムネを作って BOOTH に出したら「出品した」</td></tr>
           <tr><th>出品済み</th><td>BOOTH に出した物。版を上げるときは「Unityに戻す」</td></tr>
           <tr><th>ボツ</th><td>作らないことにしたもの</td></tr>
         </table>
@@ -1003,22 +1020,23 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // ---------------------------------------------------------------- 今すぐ動かす（requests/<mode>.json → PCの見張りが5分おきに拾う）
   const NOW_MODE = { fix: "fix", prep: "prep", prep_fix: "prep" };
-  const STAGE_NOW = { "30_feedback": "fix", "50_prep": "prep" };   // 段の見出しの「今すぐ」
-  const RUN_LABEL = { new: "新作", fix: "直し", prep: "工程C", morning: "朝のライン" };
+  const STAGE_NOW = { "30_feedback": "fix", "50_prep": "prep", "80_release": "release" };   // 段の見出しの「今すぐ」
+  const RUN_LABEL = { new: "新作", fix: "直し", prep: "工程C", release: "出品準備", morning: "朝のライン" };
+  const NOW_TEXT = { fix: "今すぐ直す", prep: "今すぐ工程Cへ", release: "今すぐ出品準備" };
   let requests = {}, status = null, pollTimer = null, wasActive = false;
 
   function paintNow(btn) {
     const m = btn.dataset.mode;
     const busy = status && status.state === "running" && status.mode === m;
     btn.disabled = !!requests[m] || busy;
-    btn.textContent = busy ? "実行中…" : requests[m] ? "依頼済み" : m === "fix" ? "今すぐ直す" : "今すぐ工程Cへ";
+    btn.textContent = busy ? "実行中…" : requests[m] ? "依頼済み" : NOW_TEXT[m] || "今すぐ";
   }
 
   async function loadRequests() {
     requests = {}; status = null;
     try {
       const files = await (await api("requests")).json();
-      files.filter(f => f.type === "file" && /^(new|fix|prep)\.json$/.test(f.name)).forEach(f => { requests[f.name.slice(0, -5)] = { sha: f.sha }; });
+      files.filter(f => f.type === "file" && /^(new|fix|prep|release)\.json$/.test(f.name)).forEach(f => { requests[f.name.slice(0, -5)] = { sha: f.sha }; });
     } catch (e) { if (e.status !== 404) throw e; }
     try { status = await (await api("status.json", { raw: true })).json(); } catch (e) { if (e.status !== 404) throw e; }
   }
@@ -1042,7 +1060,8 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   function runPanel() {
     if (!data) return "";
     const pend = act => Object.values(inbox).filter(d => act.includes(d.action)).length;
-    const n = { new: data.todo.length, fix: byStage("30_feedback").length + pend(["fix"]), prep: byStage("50_prep").length + pend(["prep", "prep_fix"]) };
+    const n = { new: data.todo.length, fix: byStage("30_feedback").length + pend(["fix"]), prep: byStage("50_prep").length + pend(["prep", "prep_fix"]),
+      release: byStage("80_release").length + pend(["unity_done"]) };
     const running = status && status.state === "running";
     const line = running ? `<p class="banner">稼働中：${esc(RUN_LABEL[status.mode] || status.mode)}（${fmt(status.since)} から）</p>`
       : Object.keys(requests).length ? `<p class="banner">依頼済み：${Object.keys(requests).map(m => RUN_LABEL[m]).join("・")}。PCが起きていれば5分以内に始まります</p>`
@@ -1061,6 +1080,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       ${btn("new", "新作を1つ作る", n.new, " 件のアイデア")}
       ${btn("fix", "直しを反映する", n.fix, " 件")}
       ${btn("prep", "工程Cを動かす", n.prep, " 件")}
+      ${btn("release", "出品準備（スクショ・説明文）", n.release, " 件")}
       <p class="state" id="run-state"></p>
     </section>`;
   }
@@ -1215,7 +1235,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     "60_texturing": { label: "テクスチャ待ち", hint: "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えて Textures/ に書き出したら「テクスチャ完了」。もう一度整えたいときは「整え直す」", mode: "texturing" },
     "65_texture_review": { label: "テクスチャ確認待ち", hint: "「テクスチャ込みの3Dで見る」で確かめて、OK なら Unity 待ちへ。直すなら「塗り直す」", mode: "tex_review" },
     "70_unity": { label: "Unity待ち", hint: "Unity で「Catalana → 工場から取り込む」→ 見た目を確かめて unitypackage に書き出したら「Unity完了」で出品待ちへ。テクスチャを直したいときは「塗り直す」でテクスチャ待ちへ（フォルダごと戻る）", mode: "unity" },
-    "80_release": { label: "出品待ち", hint: "サムネ・説明文（日英）・SNS文をそろえて BOOTH に出したら「出品した」。Unity でもう一度直すなら「Unityに戻す」", mode: "release" },
+    "80_release": { label: "出品待ち", hint: "朝7:00のライン（または「今すぐ出品準備」）で、工場が Unity でスクショを撮り、BOOTH 説明文（日英）を書きます。サムネを作って BOOTH に出したら「出品した」。Unity でもう一度直すなら「Unityに戻す」", mode: "release" },
     "90_released": { label: "出品済み", hint: "BOOTH に出した物。版を上げる（v1.1 など）ときは「Unityに戻す」で Unity待ちへ", mode: "released" },
     "99_rejected": { label: "ボツ", hint: "作らないことにしたもの。やっぱり作るなら「確認待ちに戻す」", mode: "rejected" },
   };
@@ -1268,6 +1288,12 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     if (cp) {
       const done = t => { cp.textContent = t; setTimeout(() => { cp.textContent = "コピー"; }, 1500); };
       (navigator.clipboard ? navigator.clipboard.writeText(cp.dataset.path) : Promise.reject()).then(() => done("コピーした"), () => done("できません"));
+    }
+    const cd = e.target.closest(".copy-desc");
+    if (cd && data) {
+      const it = data.items.find(i => i.id === cd.dataset.item);
+      const done = t => { cd.textContent = t; setTimeout(() => { cd.textContent = "コピー"; }, 1500); };
+      (navigator.clipboard && it ? navigator.clipboard.writeText(it.release.desc) : Promise.reject()).then(() => done("コピーした"), () => done("できません"));
     }
     const v = e.target.closest("[data-v3d]");
     if (v && data) { const it = data.items.find(i => i.id === v.dataset.v3d); if (it && it.glb) open3d(it); }
@@ -1499,7 +1525,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-28.1";
+  const APP_VERSION = "2026-10-28.2";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
