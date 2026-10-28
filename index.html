@@ -488,9 +488,15 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   // Unity から書き出した unitypackage（products\<パック>\<Item>\ にある物。Unity待ち・出品待ち・出品済みだけ）
   function pkgRow(it) {
     if (!it.packages) return "";
-    return it.packages.length
+    const pkg = it.packages.length
       ? `<p class="meta">unitypackage：${it.packages.map(n => `<code>${esc(n)}</code>`).join("・")}</p>`
       : `<p class="meta">unitypackage：まだありません（Unity で書き出すと <code>products\\StreetPack\\${esc(it.id)}\\</code> に入ります）</p>`;
+    // BOOTH に上げる zip（出品準備のときに unitypackage から作る）
+    const zip = !it.packages.length || !it.zips ? ""
+      : it.zips.length
+        ? `<p class="meta">BOOTH 用 zip：${it.zips.map(n => `<code>${esc(n)}</code>`).join("・")}（<code>products\\StreetPack\\${esc(it.id)}\\</code>）</p>`
+        : `<p class="meta">BOOTH 用 zip：まだありません（出品準備のときに unitypackage から作ります）</p>`;
+    return pkg + zip;
   }
 
   // 出品準備（工程D）：Unity で撮ったスクショと BOOTH 説明文。説明文は「コピー」で BOOTH にそのまま貼れる
@@ -1537,7 +1543,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-28.7";
+  const APP_VERSION = "2026-10-28.8";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
