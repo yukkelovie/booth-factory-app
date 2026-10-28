@@ -500,10 +500,11 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     const desc = r.desc
       ? `<details class="sub" open><summary>BOOTH 説明文</summary><div class="row" style="justify-content:flex-end"><button type="button" class="btn copy-desc" data-item="${esc(it.id)}">コピー</button></div><pre class="desc">${esc(r.desc)}</pre><p class="legend">${esc(r.desc_path)}</p></details>`
       : `<p class="muted">説明文はまだありません（スクショのあとに工程Dが書きます）。</p>`;
-    // BOOTH のサムネ（スクショと同じ products\<パック>\<Item>\Screenshots\BOOTH_*.png）。置き場所のパスも出す
+    // BOOTH のサムネ（products\<パック>\<Item>\BOOTH_Images\Thumbnail\*.png）。置き場所のパスも出す
+    const thumbDir = r.thumb_dir || `products\\StreetPack\\${it.id}\\BOOTH_Images\\Thumbnail`;
     const thumbs = (r.thumbs || []).length
       ? `<details class="sub" open><summary>BOOTH サムネ</summary>${r.thumbs.map(t => `${pic(t.img, t.name)}<p class="legend">${esc(t.name)}（PC の <code>${esc(t.path)}</code>）</p>`).join("")}</details>`
-      : `<p class="muted">サムネはまだありません（スクショと同じ <code>products\\StreetPack\\${esc(it.id)}\\Screenshots\\BOOTH_〇〇.png</code> に置くとここに出ます）。</p>`;
+      : `<p class="muted">サムネはまだありません（<code>${esc(thumbDir)}\\</code> に PNG を置くとここに出ます）。</p>`;
     return `<h4>出品の準備</h4>${thumbs}${shots}${desc}${list("確認してほしい点", r.notes)}`;
   }
 
@@ -767,7 +768,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           ${step("🎨", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えたらカードの「テクスチャ完了 → 確認へ」")}
           ${step("🔍", "テクスチャ確認待ち", "PCが5分以内にテクスチャを貼った3Dを作る。「テクスチャ込みの3Dで見る」で確かめて OK → Unityへ／塗り直す", true)}
           ${step("🧩", "Unity待ち", "工場が Unity に持ち込むフォルダ（FBX・テクスチャ）をそろえる。Unity のメニュー「Catalana → 工場から取り込む」で、マテリアルとプレハブ（単位ごと＋セット）まで自動でできる（<a href=\"#h-unity\">Unity</a>）。テクスチャを直したくなったら「塗り直す」でテクスチャ待ちへ戻せる。unitypackage を書き出したら「Unity完了 → 出品待ちへ」", true)}
-          ${step("🛒", "出品待ち", "朝7:00のライン（または「今すぐ出品準備」）で、工場が unitypackage を別の Unity プロジェクトに読み込んでスクショを撮り（Catalana_Shots。出品用プロジェクトを開いたままでよい）、工程Dが BOOTH 説明文（日英）を書く。カードでスクショと説明文（コピーボタン付き）を見て、サムネを作って BOOTH に出したら「出品した」で出品済みへ。スクショは <code>products\\StreetPack\\名前\\Screenshots\\</code>、説明文は <code>marketing\\BOOTH_説明文_名前.md</code>", true)}
+          ${step("🛒", "出品待ち", "朝7:00のライン（または「今すぐ出品準備」）で、工場が unitypackage を別の Unity プロジェクトに読み込んでスクショを撮り（Catalana_Shots。出品用プロジェクトを開いたままでよい）、工程Dが BOOTH 説明文（日英）を書く。カードでスクショと説明文（コピーボタン付き）を見て、サムネを作って BOOTH に出したら「出品した」で出品済みへ。BOOTH 用の画像は <code>products\\StreetPack\\名前\\BOOTH_Images\\</code>（スクショは <code>Screenshots\\</code>、サムネは <code>Thumbnail\\</code> に置く）、説明文は <code>marketing\\BOOTH_説明文_名前.md</code>", true)}
           ${step("✅", "出品済み", "BOOTH に出した物。版を上げる（v1.1 など）ときは「Unityに戻す」で Unity待ちへ戻せる")}
         </div>
       </section>
@@ -1529,7 +1530,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-28.4";
+  const APP_VERSION = "2026-10-28.5";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
