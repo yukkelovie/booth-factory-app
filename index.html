@@ -500,10 +500,10 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     const desc = r.desc
       ? `<details class="sub" open><summary>BOOTH 説明文</summary><div class="row" style="justify-content:flex-end"><button type="button" class="btn copy-desc" data-item="${esc(it.id)}">コピー</button></div><pre class="desc">${esc(r.desc)}</pre><p class="legend">${esc(r.desc_path)}</p></details>`
       : `<p class="muted">説明文はまだありません（スクショのあとに工程Dが書きます）。</p>`;
-    // BOOTH のサムネ（products\<パック>\<Item>\BOOTH_*.png）。置き場所のパスも出す
+    // BOOTH のサムネ（スクショと同じ products\<パック>\<Item>\Screenshots\BOOTH_*.png）。置き場所のパスも出す
     const thumbs = (r.thumbs || []).length
       ? `<details class="sub" open><summary>BOOTH サムネ</summary>${r.thumbs.map(t => `${pic(t.img, t.name)}<p class="legend">${esc(t.name)}（PC の <code>${esc(t.path)}</code>）</p>`).join("")}</details>`
-      : `<p class="muted">サムネはまだありません（<code>products\\StreetPack\\${esc(it.id)}\\BOOTH_〇〇.png</code> に置くとここに出ます）。</p>`;
+      : `<p class="muted">サムネはまだありません（スクショと同じ <code>products\\StreetPack\\${esc(it.id)}\\Screenshots\\BOOTH_〇〇.png</code> に置くとここに出ます）。</p>`;
     return `<h4>出品の準備</h4>${thumbs}${shots}${desc}${list("確認してほしい点", r.notes)}`;
   }
 
@@ -1529,7 +1529,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-28.3";
+  const APP_VERSION = "2026-10-28.4";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
