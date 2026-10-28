@@ -115,7 +115,10 @@ code { font-family: var(--f-data); font-size: .88em; }
 .pic { width: 100%; border-radius: 8px; border: 1px solid var(--line); background: var(--line); min-height: 120px; object-fit: contain; }
 .pic.loading { animation: pulse 1.2s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .5; } }
-.legend { margin: -4px 0 0; font-size: 11px; color: var(--muted); }
+.legend { margin: -4px 0 0; font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+/* 長いパス（G:\…）で横にはみ出さないように：カードの中身は縮めてよい・パスは途中で折り返す（2026-10-28） */
+.card > *, details.sub > * { min-width: 0; max-width: 100%; }
+.legend code, .muted code, .meta code { overflow-wrap: anywhere; word-break: break-all; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { font-family: var(--f-data); font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; }
 .chip.ok { color: var(--ok); } .chip.warn { color: var(--warn); font-weight: 700; } .chip.plain { color: var(--muted); }
@@ -1534,7 +1537,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-10-28.6";
+  const APP_VERSION = "2026-10-28.7";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
