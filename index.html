@@ -539,11 +539,11 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       ${compare(it)}
       ${fold("工程Bで直したこと", it.fixed, false)}
       ${historyList(it)}
-      ${it.img.uv || it.img.uv_layout ? `<details class="sub"><summary>UV（展開図・チェッカー）</summary>
+      ${it.prep ? uvSets(it) : ""}
+      ${!hasUvSets(it) && (it.img.uv || it.img.uv_layout) ? `<details class="sub"><summary>UV（展開図・チェッカー）</summary>
         ${it.img.uv_layout ? `<h4>展開図</h4>${pic(it.img.uv_layout, "UV展開図")}` : ""}
         ${it.img.uv ? `<h4>チェッカー（市松模様がゆがんでいなければOK）</h4>${pic(it.img.uv, "UVチェッカー")}` : ""}
       </details>` : ""}
-      ${it.prep ? uvSets(it) : ""}
       ${pkgRow(it)}
       ${releaseBlock(it)}
       ${fb}
@@ -562,10 +562,12 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   const v3dBtn = (it, sub = "") => it.glb ? `<button type="button" class="btn v3d-open" data-v3d="${esc(it.id)}">3Dで回して見る${sub}</button>` : "";
 
   // 工程Cのテクスチャセットごとの UV 展開図（Print で始まるセットは写真・ラベル用）
+  // 工程Cを通った物は、ブロックアウトのときの古いUVは出さない（塗るのは low の FBX。2026-11-10）
+  const hasUvSets = it => !!it.prep && Object.values((it.img && it.img.uv_sets) || {}).some(Boolean);
   function uvSets(it) {
     const s = Object.entries((it.img && it.img.uv_sets) || {}).filter(([, path]) => path);
     if (!s.length) return "";
-    return `<details class="sub"><summary>UV展開図（テクスチャセットごと・${s.length}枚）</summary>
+    return `<details class="sub"><summary>UV展開図（low の FBX と同じ・テクスチャセットごと・${s.length}枚）</summary>
       ${s.map(([name, path]) => `<h4>${esc(name)}${/^print/i.test(name) ? "（写真・ラベル用。上向きのまま）" : ""}</h4>${pic(path, name + " のUV展開図")}`).join("")}
     </details>`;
   }
@@ -1544,7 +1546,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-11-08.1";
+  const APP_VERSION = "2026-11-10.1";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
