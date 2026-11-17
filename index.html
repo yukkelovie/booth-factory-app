@@ -865,7 +865,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><b>OK</b>：このままで良い。OK済みに進む</li>
           <li><b>直して</b>：押すとメモ欄が開く。直してほしいことを書いて「送る」。メモ欄の下の<b>よく使う言い回し</b>（「もう少し太く」「高さを◯cmに」など）を押すと足せる（◯ は選んだ状態になるので、そのまま数字を打てる）。<b>写真を追加</b>で参考写真やスクショも付けられる（4枚まで）</li>
           <li><b>ボツ</b>：作らない。ボツ置き場へ</li>
-          <li><b>個別で作る（工場の外へ）</b>（ボタンの下の段）：作るけど工場の作り方に合わない物（並べて使う塀など、長さや端の切り方を自分で決めたい物）。PC の <code>products\\_WIP\\名前</code> に移り（build.py・report.md・.blend も一緒）、工場の工程はもう触らない。メモは <code>個別メモ.md</code> に残る。OK済み・直し待ちからも押せる。ラインタブの「個別へ」の一覧に並び、「工場に戻す」で確認待ちに戻せる</li>
+          <li><b>個別で作る（工場の外へ）</b>（ボタンの下の段）：作るけど工場の作り方に合わない物（並べて使う塀など、長さや端の切り方を自分で決めたい物）。PC の <code>products\_WIP\名前</code> に移り（build.py・report.md・.blend も一緒）、工場の工程はもう触らない。メモは <code>個別メモ.md</code> に残る。OK済み・直し待ちからも押せる。ラインタブの「個別へ」の一覧に並び、「工場に戻す」で確認待ちに戻せる</li>
         </ul>
         <div class="sent" aria-hidden="true"><p>送信済み：直して「支柱をもう少し太く」 → 5分以内に振り分け</p><button type="button" class="btn" tabindex="-1" style="pointer-events:none">取り消す</button></div>
         <p style="font-size:14px">送るとこの表示に変わります。PCが受け取るまで（5分以内）は<b>取り消す</b>で取り消せます。受け取られると、カードは直し待ち・OK済みなどの段に移ります。作り直しは翌朝7時か、送った後に出る「今すぐ直す」で。</p>
@@ -1554,7 +1554,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-11-18.1";
+  const APP_VERSION = "2026-11-18.2";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
