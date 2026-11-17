@@ -209,6 +209,7 @@ pre.desc { white-space: pre-wrap; word-break: break-word; font-size: 13px; max-h
 .act-ok, .act-prep_ok { background: var(--ok) !important; border-color: var(--ok) !important; color: var(--surface); }
 .act-fix, .act-prep_fix, .act-prep, .btn.primary { background: var(--mark) !important; border-color: var(--mark) !important; color: var(--mark-ink); }
 .act-reject { color: var(--warn); border-color: var(--warn) !important; background: transparent !important; }
+.btns .act-solo { grid-column: 1 / -1; background: transparent !important; color: var(--muted); }   /* 個別へは下の段に横長・控えめに */
 .fixbox { display: grid; gap: 6px; }
 .fixbox label { font-size: 13px; color: var(--muted); }
 textarea, input[type="text"], input[type="password"] { font-size: 16px; width: 100%; padding: 8px 10px; border-radius: 8px;
@@ -408,12 +409,16 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   const short = it => it.name.split("／")[0];
 
   const LABEL = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた", prep_ok: "工程C確定", prep_fix: "工程Cの直し", back_ok: "OK済みに戻す", unreject: "ボツ取り消し",
-    tex_done: "テクスチャ完了", tex_ok: "テクスチャOK", tex_fix: "塗り直し", unity_done: "Unity完了", released: "出品した", unity_back: "Unityに戻す" };
+    tex_done: "テクスチャ完了", tex_ok: "テクスチャOK", tex_fix: "塗り直し", unity_done: "Unity完了", released: "出品した", unity_back: "Unityに戻す", solo: "個別へ", unsolo: "工場に戻す" };
+  // 個別で作る（2026-11-18）：工場の作り方に合わない物（並べて使う塀など）を、工場の外 products\_WIP で自分で作る。下の段に横長で出す
+  const SOLO_NOTE = ["個別で作る理由・メモ（なくてもOK）", "例：並べて使う部品なので、長さと端の切り方を決めてから自分で作る"];
   const MODES = {
-    review: { acts: ["ok", "fix", "reject"], cls: "", note: { fix: ["直してほしいこと", "例：支柱をもう少し太く。屋根はフラットに"] } },
+    review: { acts: ["ok", "fix", "reject", "solo"], cls: "", note: { fix: ["直してほしいこと", "例：支柱をもう少し太く。屋根はフラットに"], solo: SOLO_NOTE } },
     // OK済みからも「直して」で作り直しに戻せる（Blenderで整えた .blend は _backup に残る）
-    prep: { acts: ["prep", "fix"], cls: "prepfix", note: { prep: ["工程Cへのメモ（なくてもOK）", "例：扉はギミックにしたい／UVはそのまま"],
-      fix: ["作り直してほしいこと", "例：脚をもう少し太く（Blenderで整えた分は _backup に残ります）"] } },
+    prep: { acts: ["prep", "fix", "solo"], cls: "prepfix", note: { prep: ["工程Cへのメモ（なくてもOK）", "例：扉はギミックにしたい／UVはそのまま"],
+      fix: ["作り直してほしいこと", "例：脚をもう少し太く（Blenderで整えた分は _backup に残ります）"], solo: SOLO_NOTE } },
+    feedback: { acts: ["solo"], cls: "one", note: { solo: SOLO_NOTE } },   // 直し待ちからも個別へ（作り直す前に）
+    individual: { acts: ["unsolo"], cls: "one", note: {} },
     prep_shelf: { acts: ["prep"], cls: "one", note: { prep: ["工程Cへのメモ（なくてもOK）", "例：扉はギミックにしたい／UVはそのまま"] } },   // 小さいサムネ用（直しは大きいカードで）
     prep_review: { acts: ["prep_ok", "prep_fix", "back_ok"], cls: "", note: { prep_fix: ["工程Cへの直し", "例：取っ手の面は消さないで／ガラスは別のテクスチャセットに"] } },
     // テクスチャ（2026-10-24）：塗り終えたら「テクスチャ完了」→ テクスチャ確認待ちでテクスチャ込みの3Dを見て OK なら Unity 待ちへ
@@ -428,7 +433,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
   };
   const BTN_TEXT = { ok: "OK", fix: "直して", reject: "ボツ", prep: "整えた → 工程Cへ", prep_ok: "OK（確定）", prep_fix: "直して",
     back_ok: "OK済みに戻す（整え直す）", unreject: "確認待ちに戻す", tex_done: "テクスチャ完了 → 確認へ", tex_ok: "OK → Unityへ", tex_fix: "塗り直す",
-    unity_done: "Unity完了 → 出品待ちへ", released: "出品した", unity_back: "Unityに戻す（版を上げる）" };
+    unity_done: "Unity完了 → 出品待ちへ", released: "出品した", unity_back: "Unityに戻す（版を上げる）", solo: "個別で作る（工場の外へ）", unsolo: "工場に戻す（確認待ちへ）" };
   const BTN_TEXT_IN = { prep_review: { back_ok: "整え直す" }, texturing: { back_ok: "整え直す" }, unity: { unity_done: "Unity完了", tex_fix: "塗り直す" }, release: { unity_back: "Unityに戻す" } };   // 3つ並ぶところは短く
   const NOTE_REQUIRED = ["fix", "prep_fix"];
   // メモの定型文（押すとメモ欄に足す。◯ は選んだ状態になるので、そのまま数字を打てる）
@@ -656,7 +661,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
       ["60_texturing", "テクスチャ待ち", "_prep フォルダの FBX を Substance Painter へ（塗るのは「名前_low.fbx」、ベイクは bake があればそちら。.spp は Substance/、書き出しは Textures/ へ）。塗り終えたら「テクスチャ完了」"],
       ["65_texture_review", "テクスチャ確認待ち", "テクスチャ込みの3Dを見て OK なら Unity 待ちへ"], ["70_unity", "Unity待ち", "Unity で「Catalana → 工場から取り込む」→ 見た目を確かめて unitypackage に書き出したら「Unity完了」"],
       ["80_release", "出品待ち", "工場がスクショと BOOTH 説明文を用意します（朝7:00か「今すぐ出品準備」）。サムネを作って BOOTH に出したら「出品した」"], ["90_released", "出品済み", ""],
-      ["99_rejected", "ボツ", ""]];
+      ["individual", "個別へ", "工場の外（products\\_WIP）で自分で作る物。工場の工程はもう触りません"], ["99_rejected", "ボツ", ""]];
     el.innerHTML = runPanel() + `
       <ol class="flow" aria-label="ラインの状況（押すと一覧へ）">${counts.map(([n, l, id]) => `<li class="${l === "確認待ち" && n ? "hot" : ""}"><button type="button" class="flow-btn" data-open-stage="${id}" aria-label="${l} ${n}件の一覧"><b>${n}</b><span>${l}</span></button></li>`).join("")}</ol>
       ${sections.map(([s, l, h]) => {
@@ -860,6 +865,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
           <li><b>OK</b>：このままで良い。OK済みに進む</li>
           <li><b>直して</b>：押すとメモ欄が開く。直してほしいことを書いて「送る」。メモ欄の下の<b>よく使う言い回し</b>（「もう少し太く」「高さを◯cmに」など）を押すと足せる（◯ は選んだ状態になるので、そのまま数字を打てる）。<b>写真を追加</b>で参考写真やスクショも付けられる（4枚まで）</li>
           <li><b>ボツ</b>：作らない。ボツ置き場へ</li>
+          <li><b>個別で作る（工場の外へ）</b>（ボタンの下の段）：作るけど工場の作り方に合わない物（並べて使う塀など、長さや端の切り方を自分で決めたい物）。PC の <code>products\\_WIP\\名前</code> に移り（build.py・report.md・.blend も一緒）、工場の工程はもう触らない。メモは <code>個別メモ.md</code> に残る。OK済み・直し待ちからも押せる。ラインタブの「個別へ」の一覧に並び、「工場に戻す」で確認待ちに戻せる</li>
         </ul>
         <div class="sent" aria-hidden="true"><p>送信済み：直して「支柱をもう少し太く」 → 5分以内に振り分け</p><button type="button" class="btn" tabindex="-1" style="pointer-events:none">取り消す</button></div>
         <p style="font-size:14px">送るとこの表示に変わります。PCが受け取るまで（5分以内）は<b>取り消す</b>で取り消せます。受け取られると、カードは直し待ち・OK済みなどの段に移ります。作り直しは翌朝7時か、送った後に出る「今すぐ直す」で。</p>
@@ -867,7 +873,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
         <div class="decide demo-btns" aria-hidden="true" style="border-top:0;padding-top:0">
           <div class="btns one"><button type="button" class="act-prep" tabindex="-1">整えた → 工程Cへ</button></div>
         </div>
-        <p style="font-size:14px"><b>あとから戻す</b>：OKを出した後でも戻せます。<b>OK済み</b>のカードの「直して」で作り直しに戻る（Blenderで整えた .blend は、作り直す前にアイテムのフォルダの <code>_backup</code> に保存されます）。<b>工程C確認待ち</b>は「整え直す」、<b>テクスチャ待ち</b>は「整え直す」で、もう一度Blenderで整えられる（工程Cは元の .blend を書き換えないので、整えた形はそのまま残っている）。<b>テクスチャ確認待ち</b>と<b>Unity待ち</b>は「塗り直す」でテクスチャ待ちに戻せる（フォルダごと＝.spp・テクスチャ・FBX も戻る）。<b>ボツ</b>は「確認待ちに戻す」で復活。どれもラインタブの数字のマスから一覧を開くと押せます。</p>
+        <p style="font-size:14px"><b>あとから戻す</b>：OKを出した後でも戻せます。<b>OK済み</b>のカードの「直して」で作り直しに戻る（Blenderで整えた .blend は、作り直す前にアイテムのフォルダの <code>_backup</code> に保存されます）。<b>工程C確認待ち</b>は「整え直す」、<b>テクスチャ待ち</b>は「整え直す」で、もう一度Blenderで整えられる（工程Cは元の .blend を書き換えないので、整えた形はそのまま残っている）。<b>テクスチャ確認待ち</b>と<b>Unity待ち</b>は「塗り直す」でテクスチャ待ちに戻せる（フォルダごと＝.spp・テクスチャ・FBX も戻る）。<b>ボツ</b>は「確認待ちに戻す」で復活。<b>個別へ</b>は「工場に戻す」で確認待ちへ。どれもラインタブの数字のマスから一覧を開くと押せます。</p>
         <p style="font-size:14px"><b>整えた</b>（OK済みのもの）：Blender で整え終わったら押す。メモ欄に「扉はギミックにしたい」「UVはそのまま」「ビスも丸めて」など工程Cへの指示を書けます（なくてもOK）。ローポリのベベルは、入れたい所だけ自分で入れて<b>適用してから</b>押す（モディファイアのままだと工程Cで外れる）。</p>
       </section>
 
@@ -1250,7 +1256,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     todo: { label: "待ち行列", hint: "まだ作っていないアイデア。上から順に作ります" },
     "10_blockout": { label: "工程A済み", hint: "形ができて、工程Bの検品待ち" },
     "20_ready": { label: "確認待ち", hint: "4面図を見て OK／直して／ボツ", mode: "review" },
-    "30_feedback": { label: "直し待ち", hint: "次のライン（または「今すぐ直す」）で作り直します" },
+    "30_feedback": { label: "直し待ち", hint: "次のライン（または「今すぐ直す」）で作り直します。作り直さずに自分で作るなら「個別で作る」", mode: "feedback" },
     "40_approved": { label: "OK済み", hint: "Blenderで整えたら「整えた」を押すと、工程Cが仕上げ前処理をします。形から作り直したいときは「直して」", mode: "prep" },
     "50_prep": { label: "工程C待ち", hint: "次のライン（または「今すぐ」）で工程Cが仕上げ前処理をします" },
     "55_prep_review": { label: "工程C確認待ち", hint: "消す面とパーツ分けを確認して OK（確定）／直して。Blenderで整え直したいときは「整え直す」" },
@@ -1259,6 +1265,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     "70_unity": { label: "Unity待ち", hint: "Unity で「Catalana → 工場から取り込む」→ 見た目を確かめて unitypackage に書き出したら「Unity完了」で出品待ちへ。テクスチャを直したいときは「塗り直す」でテクスチャ待ちへ（フォルダごと戻る）", mode: "unity" },
     "80_release": { label: "出品待ち", hint: "朝7:00のライン（または「今すぐ出品準備」）で、工場が Unity でスクショを撮り、BOOTH 説明文（日英）を書きます。サムネを作って BOOTH に出したら「出品した」。Unity でもう一度直すなら「Unityに戻す」", mode: "release" },
     "90_released": { label: "出品済み", hint: "BOOTH に出した物。版を上げる（v1.1 など）ときは「Unityに戻す」で Unity待ちへ", mode: "released" },
+    individual: { label: "個別へ", hint: "工場の外 products\\_WIP\\名前 で自分で作る物（工場の build.py・report.md・.blend も一緒に移っています）。工場の工程はもう触りません。工場に任せ直すなら「工場に戻す」で確認待ちへ", mode: "individual" },
     "99_rejected": { label: "ボツ", hint: "作らないことにしたもの。やっぱり作るなら「確認待ちに戻す」", mode: "rejected" },
   };
   let curStage = null, prevTab = "line";
@@ -1547,7 +1554,7 @@ dl.faq dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 
   // アプリの版：更新したら APP_VERSION と version.txt を同じ値にして push する。
   // GitHub Pages はページを10分キャッシュするので、新しい版があれば上に帯を出し、押すと別のURL（?v=）で読み直して入れ替える
-  const APP_VERSION = "2026-11-16.1";
+  const APP_VERSION = "2026-11-18.1";
   async function checkVersion() {
     try {
       const v = (await (await fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" })).text()).trim();
